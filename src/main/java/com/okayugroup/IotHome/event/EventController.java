@@ -7,7 +7,7 @@ public class EventController {
     private static Map<String, Map<String, List<Event>>> tree = null;
     public static Map<String, Map<String, List<Event>>> getTree() {
         if (tree == null) {
-            tree = Map.of("get", Map.of("profile1", List.of(new WindowsPowershellEvent("ls"), new WindowsCmdPromptEvent("dir"))));
+            tree = Map.of("get", Map.of("profile1", List.of(new WindowsPowershellEvent("ls"), new CommandEvent("dir"))));
         }
         return tree;
     }

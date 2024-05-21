@@ -5,6 +5,7 @@ import java.io.IOException;
 public abstract class Event {
     public Event(String... args){
         this();
+        setArgs(args);
     }
     public Event() {
         type = getThisType();
@@ -15,6 +16,7 @@ public abstract class Event {
     public enum EventType {
         COMMAND,
         EXEC_FILE,
+
         InternetRequest,
         PLAY_SOUND,
         Condition,
@@ -23,6 +25,11 @@ public abstract class Event {
     public EventType getType() {
         return type;
     }
-
+    public abstract String getName();
+    public abstract void setArgs(String... args);
+    @Override
+    public String toString() {
+        return getName();
+    }
     public abstract EventResult execute(EventResult previousResult) throws IOException, InterruptedException;
 }

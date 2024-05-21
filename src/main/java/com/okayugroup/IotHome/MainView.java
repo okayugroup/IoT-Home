@@ -29,6 +29,8 @@ public class MainView {
     private JTextArea eventDescp;
     private JTextField eventName;
     private JLabel eventType;
+    private JComboBox comboBox1;
+    private JEditorPane editorPane1;
     public static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) {
@@ -78,15 +80,23 @@ public class MainView {
 
 
     private void createUIComponents() {
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("webroot");
-        root.add(new DefaultMutableTreeNode("settings"));
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("<ルート>");
+        DefaultMutableTreeNode apiRoot = new DefaultMutableTreeNode("api");
         for (var row: EventController.getTree().entrySet()) {
             DefaultMutableTreeNode dir = new DefaultMutableTreeNode(row.getKey());
             for (var col: row.getValue().entrySet()) {
                 dir.add(new DefaultMutableTreeNode(col.getKey()));
             }
-            root.add(dir);
+            apiRoot.add(dir);
         }
+        DefaultMutableTreeNode api = new DefaultMutableTreeNode("private");
+        api.add(new DefaultMutableTreeNode("GET"));
+        api.add(new DefaultMutableTreeNode("POST"));
+        root.add(api);
+        root.add(new DefaultMutableTreeNode("settings"));
+        root.add(apiRoot);
+
+
         webTree = new JTree(root);
         webTree.addTreeSelectionListener(this::onTreeSelected);
 
@@ -96,22 +106,56 @@ public class MainView {
     private void onTreeSelected(TreeSelectionEvent e){
         TreePath treePath = e.getPath();
         Object[] path = treePath.getPath();
-        eventName.setEditable(true);
-        eventName.setText(path[path.length - 1].toString());
-        if (treePath.getPathCount() < 3) {
-            list1.setListData(new Vector<>());
-            if (path.length == 2 && path[1].toString().equals("settings")) {
-                eventType.setText("Webページ");
-                eventName.setText("設定画面");
-                eventDescp.setText("このページを無効化して保護するには [グローバル>HTMLの設定ページを有効化] のチェックボックスを外してください。");
-                eventName.setEditable(false);
-            } else {
-                eventType.setText("ディレクトリ");
-                eventDescp.setText("表示するものがありません");
+        if (path.length == 1){
+            eventType.setText("ディレクトリ");
+            eventName.setText("ルート");
+            eventDescp.setText("REST APIのルートディレクトリです");
+            eventName.setEditable(false); //親の名前が変更されることを防ぎます
+        } else if (path[1].toString().equals("api")) {
+            eventName.setEditable(true);
+            eventName.setText(path[path.length - 1].toString());
+            if (path.length == 2) {
+                eventDescp.setText("イベントAPIのルートです。\n名前を編集することが出来ますが、編集した場合は再起動が必要になります。");
+                return;
             }
-            return;
+            if (path.length < 4) {
+                list1.setListData(new Vector<>());
+                {
+                    eventType.setText("ディレクトリ");
+                    eventDescp.setText("表示するものがありません");
+                }
+                return;
+            }
+            eventType.setText("イベント");
+            List<Event> events = EventController.getEvents(path[2].toString(), path[3].toString());
+            list1.setListData(Objects.requireNonNull(events).toArray(Event[]::new));
+
+        } else if (path.length == 2 && path[1].toString().equals("settings")) {
+            eventType.setText("Webページ");
+            eventName.setText("設定画面");
+            eventDescp.setText("このページを無効化して保護するには [グローバル>HTMLの設定ページを有効化] のチェックボックスを外してください。");
+            eventName.setEditable(false);
+        } else if (path[1].toString().equals("private")) {
+            eventName.setEditable(false);
+            eventName.setText(path[path.length - 1].toString());
+            String name = "内部で使用するAPI\n";
+
+            if (path.length == 3) {
+                eventType.setText("種別");
+                switch (path[2].toString()) {
+                    case "GET":
+                        name += "設定のjsonファイルを取得します";
+                        break;
+                    case "POST":
+                        name += "設定のjsonファイルを更新します";
+                        break;
+                    default:
+
+                }
+            } else eventType.setText("エンドポイント");
+
+            eventDescp.setText(name + "\n注意：内部トークンを使用しているため通常の方法ではアクセスできません。");
         }
-        List<Event> events = EventController.getEvents(path[1].toString(), path[2].toString());
-        list1.setListData(Objects.requireNonNull(events).toArray(Event[]::new));
+
     }
 }
