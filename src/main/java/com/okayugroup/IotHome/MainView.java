@@ -1,47 +1,50 @@
 package com.okayugroup.IotHome;
 
+import com.okayugroup.IotHome.event.*;
 import com.okayugroup.IotHome.event.Event;
-import com.okayugroup.IotHome.event.EventController;
+import jakarta.annotation.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.Vector;
 
 public class MainView {
+    public static final Event[] EVENTS = {CommandEvent.ConsoleCommand(), FileExecutionEvent.ExecuteFile()};
     private JPanel formPanel;
     private JTextArea logArea;
     private JTabbedPane settingsPane;
     private JCheckBox useHtmlSettings;
     private JTree webTree;
-    private JList<Event> list1;
+    private JList<Event> eventList;
     private JPanel eventsPane;
-    private JTextArea eventDescp;
+    private JTextArea eventDescription;
     private JTextField eventName;
     private JLabel eventType;
-    private JComboBox comboBox1;
-    private JEditorPane editorPane1;
+    private JComboBox<Event> availableEvents;
+    private JEditorPane args;
+    private JButton addEvent;
+    private JButton removeEvent;
+    private JComboBox<EventTemplate> availableEventTypes;
     public static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private List<Event> selectedEvents = null;
     public static void main(String[] args) {
-        Font font = loadFont(Objects.requireNonNull(MainView.class.getResource("/NotoSansJP-Medium.ttf")),11);
-        setUIFont(new FontUIResource(font));
+        Font font = loadFont();
+        setUIFont(new FontUIResource(font.deriveFont(10f)));
 
         JFrame frame = new JFrame("UserForm");
         MainView view = new MainView();
-
+        view.initComponents();
         new LogController(view);
-        LogController.LOG.addLog("アプリが起動しました。");
+        LogController.LOGGER.log("アプリが起動しました。");
         frame.setContentPane(view.formPanel);
         frame.setSize(600,400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -69,16 +72,28 @@ public class MainView {
                 UIManager.put(key, f);
         }
     }
-    public static Font loadFont(URL path, float size) {
+    private static Font loadFont() {
         try {
-            Font font = Font.createFont(Font.TRUETYPE_FONT, new File(path.toURI()));
-            return font.deriveFont(size);
-        } catch (FontFormatException | IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            // フォントファイルをストリームとして読み込む
+            InputStream inputStream = MainView.class.getResourceAsStream("/NotoSansJP-Medium.ttf");
+            if (inputStream == null) {
+                throw new IOException("Font file not found: " + "/NotoSansJP-Medium.ttf");
+            }
+
+            // フォントを作成
+            return Font.createFont(Font.TRUETYPE_FONT, inputStream);
+        } catch (FontFormatException | IOException e) {
+            LogController.LOGGER.log("フォントが読み込めませんでした。" + e.getMessage());
+            // デフォルトのフォントを返すか、例外を処理する
+            return new JLabel().getFont(); // デフォルトのフォントを返す
         }
     }
-
-
+    @Nullable
+    private Event createEvent() {
+        Event e = (Event)availableEvents.getSelectedItem();
+        if (e == null) return null;
+        return e.getCopy(availableEventTypes.getSelectedIndex()).setArgs(args.getText().split("\n"));
+    }
     private void createUIComponents() {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("<ルート>");
         DefaultMutableTreeNode apiRoot = new DefaultMutableTreeNode("api");
@@ -96,44 +111,61 @@ public class MainView {
         root.add(new DefaultMutableTreeNode("settings"));
         root.add(apiRoot);
 
-
         webTree = new JTree(root);
         webTree.addTreeSelectionListener(this::onTreeSelected);
 
         eventsPane = new JPanel(new BorderLayout());
-    }
 
+    }
+    private void initComponents() {
+        // 選択可能なイベントを初期化
+        DefaultComboBoxModel<Event> events = new DefaultComboBoxModel<>(EVENTS);
+        availableEvents.setModel(events);
+        availableEvents.setRenderer(new ItemRenderer());
+        availableEvents.addItemListener(e -> availableEventTypes.setModel(new DefaultComboBoxModel<>(((Event)e.getItem()).getTemplates())));
+        availableEventTypes.setModel(new DefaultComboBoxModel<>(EVENTS[0].getTemplates()));
+
+        addEvent.addActionListener(e -> {
+            if (selectedEvents != null) {
+                selectedEvents.add(createEvent());
+                eventList.setListData(Objects.requireNonNull(selectedEvents).toArray(Event[]::new));
+            }
+        });
+    }
     private void onTreeSelected(TreeSelectionEvent e){
+        System.out.println(availableEvents.getModel());
         TreePath treePath = e.getPath();
         Object[] path = treePath.getPath();
+        eventsPane.setVisible(false);
         if (path.length == 1){
             eventType.setText("ディレクトリ");
             eventName.setText("ルート");
-            eventDescp.setText("REST APIのルートディレクトリです");
+            eventDescription.setText("すべてのAPIのルートディレクトリです");
             eventName.setEditable(false); //親の名前が変更されることを防ぎます
-        } else if (path[1].toString().equals("api")) {
+        } else if (path[1].toString().equals("api")) { // root
             eventName.setEditable(true);
             eventName.setText(path[path.length - 1].toString());
             if (path.length == 2) {
-                eventDescp.setText("イベントAPIのルートです。\n名前を編集することが出来ますが、編集した場合は再起動が必要になります。");
+                eventDescription.setText("イベントAPIのルートです。\n名前を編集することが出来ますが、編集した場合は再起動が必要になります。");
                 return;
             }
             if (path.length < 4) {
-                list1.setListData(new Vector<>());
                 {
                     eventType.setText("ディレクトリ");
-                    eventDescp.setText("表示するものがありません");
+                    eventDescription.setText("表示するものがありません");
                 }
                 return;
             }
-            eventType.setText("イベント");
-            List<Event> events = EventController.getEvents(path[2].toString(), path[3].toString());
-            list1.setListData(Objects.requireNonNull(events).toArray(Event[]::new));
 
+            eventType.setText("イベント");
+            eventDescription.setText("イベントのグループです。編集、順序の変更、追加、削除が可能です。");
+            selectedEvents = EventController.getEvents(path[2].toString(), path[3].toString());
+            eventList.setListData(Objects.requireNonNull(selectedEvents).toArray(Event[]::new));
+            eventsPane.setVisible(true);
         } else if (path.length == 2 && path[1].toString().equals("settings")) {
             eventType.setText("Webページ");
             eventName.setText("設定画面");
-            eventDescp.setText("このページを無効化して保護するには [グローバル>HTMLの設定ページを有効化] のチェックボックスを外してください。");
+            eventDescription.setText("このページを無効化して保護するには [グローバル>HTMLの設定ページを有効化] のチェックボックスを外してください。");
             eventName.setEditable(false);
         } else if (path[1].toString().equals("private")) {
             eventName.setEditable(false);
@@ -154,7 +186,7 @@ public class MainView {
                 }
             } else eventType.setText("エンドポイント");
 
-            eventDescp.setText(name + "\n注意：内部トークンを使用しているため通常の方法ではアクセスできません。");
+            eventDescription.setText(name + "\n注意：内部トークンを使用しているため通常の方法ではアクセスできません。");
         }
 
     }

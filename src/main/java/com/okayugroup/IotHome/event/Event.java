@@ -1,35 +1,37 @@
 package com.okayugroup.IotHome.event;
 
-import java.io.IOException;
-
 public abstract class Event {
-    public Event(String... args){
-        this();
+    protected int typeIndex;
+    private final EventTemplate type;
+    private final EventTemplate[] templates;
+    protected Event(String NAME, int type, String... args){
+        this.name = NAME;
+        templates = initializeEvents();
+        typeIndex = type;
+        this.type = templates[type];
         setArgs(args);
     }
-    public Event() {
-        type = getThisType();
+    protected Event(int type, String... args){
+        this("", type, args);
     }
-    protected final EventType type;
-
-    protected abstract EventType getThisType();
-    public enum EventType {
-        COMMAND,
-        EXEC_FILE,
-
-        InternetRequest,
-        PLAY_SOUND,
-        Condition,
-    }
-
-    public EventType getType() {
+    protected abstract EventTemplate[] initializeEvents();
+    public EventTemplate getType() {
         return type;
     }
-    public abstract String getName();
-    public abstract void setArgs(String... args);
+    public abstract Event getCopy(int typeIndex);
+    public Event getCopy() {
+        return getCopy(typeIndex);
+    }
+    public final String name;
+    public EventTemplate[] getTemplates() {
+        return templates;
+    }
+    public abstract Object getArgs();
+    public abstract Event setArgs(String... args);
+
     @Override
     public String toString() {
-        return getName();
+        return type.name();
     }
-    public abstract EventResult execute(EventResult previousResult) throws IOException, InterruptedException;
+    public abstract EventResult execute(EventResult previousResult);
 }
