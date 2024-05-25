@@ -1,7 +1,7 @@
 package com.okayugroup.IotHome.event;
 
 import com.okayugroup.IotHome.LogController;
-import jakarta.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,13 +25,14 @@ public class CommandEvent extends Event {
     public static CommandEvent CmdPromptCommand() {
         return new CommandEvent(2);
     }
+    private static final EventTemplate[] templates = new EventTemplate[]{
+            new EventTemplate("コンソール コマンド", 1, "実行するコマンド"),
+            new EventTemplate("Windows Powershell コマンド", 1, "実行するコマンド"),
+            new EventTemplate("Windows コマンド", 1, "実行するコマンド"),
+    };
     @Override
     protected EventTemplate[] initializeEvents() {
-        return new EventTemplate[]{
-                new EventTemplate("コンソール コマンド", 1, "実行するコマンド"),
-                new EventTemplate("Windows Powershell コマンド", 1, "実行するコマンド"),
-                new EventTemplate("Windows コマンド", 1, "実行するコマンド"),
-        };
+        return templates;
     }
 
     @Override
@@ -54,9 +55,10 @@ public class CommandEvent extends Event {
     }
 
     @Override
-    public EventResult execute(EventResult previousResult)  {
+    public EventResult execute(@Nullable EventResult previousResult)  {
         if (command == null) return EventResult.ERROR;
         try {
+            String command = previousResult == null ? this.command : this.command.formatted(previousResult.result().toArray());
             Process process = Runtime.getRuntime().exec(switch (typeIndex) {
                 case 1 -> "powershell.exe /c " + command;
                 case 2 -> "cmd.exe /c " + command;

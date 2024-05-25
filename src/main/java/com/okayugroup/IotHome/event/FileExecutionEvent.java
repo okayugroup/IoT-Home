@@ -8,6 +8,7 @@ import java.util.List;
 import com.okayugroup.IotHome.LogController;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
+import org.jetbrains.annotations.Nullable;
 
 public class FileExecutionEvent extends Event {
     protected FileExecutionEvent(int type, String... args) {
@@ -19,14 +20,15 @@ public class FileExecutionEvent extends Event {
     public static FileExecutionEvent PlaySound() {
         return new FileExecutionEvent(1);
     }
+    private static final EventTemplate[] templates = new EventTemplate[]{
+            new EventTemplate("ファイルを実行", 1, "ファイルパス", "実行するディレクトリ(オプション)"),
+            new EventTemplate("音声を再生", 1, "ファイルパス")
+    };
     private String filePath;
-    private String directory;
+    private String directory = null;
     @Override
     protected EventTemplate[] initializeEvents() {
-        return new EventTemplate[] {
-                new EventTemplate("ファイルを実行", 1, "ファイルパス", "実行するディレクトリ(オプション)"),
-                new EventTemplate("音声を再生", 1, "ファイルパス"),
-        };
+        return templates;
     }
 
     @Override
@@ -42,13 +44,14 @@ public class FileExecutionEvent extends Event {
     }
 
     @Override
-    public Object getArgs() {
-        return null;
+    public String getArgs() {
+        return directory == null ? filePath : filePath + "\n" + directory;
     }
 
     @Override
-    public EventResult execute(EventResult previousResult) {
-            if (filePath == null) return new EventResult(getType(), -1, List.of());
+    public EventResult execute(@Nullable EventResult previousResult) {
+        if (filePath == null) return new EventResult(getType(), -1, List.of());
+        String filePath = previousResult == null ? this.filePath : this.filePath.formatted(previousResult.result().toArray());
         switch (typeIndex) {
             case 0:
             default:

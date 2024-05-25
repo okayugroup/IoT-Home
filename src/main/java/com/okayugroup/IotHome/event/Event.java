@@ -1,7 +1,9 @@
 package com.okayugroup.IotHome.event;
 
+import org.jetbrains.annotations.Nullable;
+
 public abstract class Event {
-    protected int typeIndex;
+    protected final int typeIndex;
     private final EventTemplate type;
     private final EventTemplate[] templates;
     protected Event(String NAME, int type, String... args){
@@ -10,9 +12,6 @@ public abstract class Event {
         typeIndex = type;
         this.type = templates[type];
         setArgs(args);
-    }
-    protected Event(int type, String... args){
-        this("", type, args);
     }
     protected abstract EventTemplate[] initializeEvents();
     public EventTemplate getType() {
@@ -26,12 +25,12 @@ public abstract class Event {
     public EventTemplate[] getTemplates() {
         return templates;
     }
-    public abstract Object getArgs();
+    public abstract String getArgs();
     public abstract Event setArgs(String... args);
 
     @Override
     public String toString() {
         return type.name();
     }
-    public abstract EventResult execute(EventResult previousResult);
+    public abstract EventResult execute(@Nullable EventResult previousResult);
 }

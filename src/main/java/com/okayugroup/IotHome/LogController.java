@@ -2,6 +2,7 @@ package com.okayugroup.IotHome;
 
 public class LogController {
     public enum LogLevel {
+        DEBUG,
         INFO,
         WARNING,
         ERROR
@@ -14,6 +15,9 @@ public class LogController {
     }
     public void log(String message) {
         view.setLog(LogLevel.INFO, message);
+    }
+    public void log(LogLevel level, String message) {
+        view.setLog(level, message);
     }
 
 }

@@ -34,7 +34,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="OK"/>
+                  <text value="&amp;OK" noi18n="true"/>
                 </properties>
               </component>
               <component id="5723f" class="javax.swing.JButton" binding="buttonCancel">
@@ -42,7 +42,7 @@
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="Cancel"/>
+                  <text value="&amp;Cancel" noi18n="true"/>
                 </properties>
               </component>
             </children>
@@ -62,7 +62,7 @@
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="&lt;html&gt;イベントAPIの親の名前が変更されました。&lt;br&gt;これらの変更を反映させるためにはアプリを&lt;br&gt;再起動する必要があります。よろしいですか？&lt;/html&gt;"/>
+              <text value="&lt;html&gt;イベントAPIの親の名前が変更されました。&lt;br&gt;これらの変更を反映させるためにはアプリを&lt;br&gt;再起動する必要があります。よろしいですか？&lt;/html&gt;" noi18n="true"/>
             </properties>
           </component>
           <component id="b57bd" class="javax.swing.JLabel">
@@ -70,7 +70,7 @@
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="&lt;html&gt;これにより、現在閲覧中のn人の接続およびアクセスが&lt;br&gt;一時的に失われる可能性があります。&lt;br&gt;できるだけ影響の少ないタイミングに行うことをおすすめします。&lt;/html&gt;"/>
+              <text value="&lt;html&gt;これにより、現在閲覧中のn人の接続およびアクセスが&lt;br&gt;一時的に失われる可能性があります。&lt;br&gt;できるだけ影響の少ないタイミングに行うことをおすすめします。&lt;/html&gt;" noi18n="true"/>
             </properties>
           </component>
           <vspacer id="651d7">

@@ -22,7 +22,7 @@ public class ItemRenderer extends JLabel implements ListCellRenderer<Event> {
         }
 
         // 表示したい情報を設定
-        setText(value.name);
+        setText(value == null ? "[無選択]" : value.name);
         return this;
     }
 }

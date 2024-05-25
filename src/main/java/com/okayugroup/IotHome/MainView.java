@@ -5,6 +5,8 @@ import com.okayugroup.IotHome.event.Event;
 import jakarta.annotation.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.*;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +23,6 @@ public class MainView {
     public static final Event[] EVENTS = {CommandEvent.ConsoleCommand(), FileExecutionEvent.ExecuteFile()};
     private JPanel formPanel;
     private JTextArea logArea;
-    private JTabbedPane settingsPane;
     private JCheckBox useHtmlSettings;
     private JTree webTree;
     private JList<Event> eventList;
@@ -29,11 +31,14 @@ public class MainView {
     private JTextField eventName;
     private JLabel eventType;
     private JComboBox<Event> availableEvents;
-    private JEditorPane args;
+    private JTextArea args;
     private JButton addEvent;
     private JButton removeEvent;
     private JComboBox<EventTemplate> availableEventTypes;
-    public static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private JButton testEvents;
+    public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private int selectedEventIndex = -1;
+    private boolean eventHandleable = true;
 
     private List<Event> selectedEvents = null;
     public static void main(String[] args) {
@@ -52,14 +57,12 @@ public class MainView {
     }
 
     public void setLog(LogController.LogLevel level, String message) {
-        var levelText = new StringBuilder(level.name());
-        levelText.setLength(7);
         String builder = LocalDateTime.now().format(DATE_FORMAT) +
                 " [" +
-                levelText.toString().replace('\u0000', ' ') +
+                level.name() +
                 "]: " +
                 message +
-                '\n';
+                "\n";
         logArea.append(builder);
     }
     // UIManagerを使用してアプリケーション全体のフォントを設定するメソッド
@@ -118,6 +121,7 @@ public class MainView {
 
     }
     private void initComponents() {
+
         // 選択可能なイベントを初期化
         DefaultComboBoxModel<Event> events = new DefaultComboBoxModel<>(EVENTS);
         availableEvents.setModel(events);
@@ -128,12 +132,65 @@ public class MainView {
         addEvent.addActionListener(e -> {
             if (selectedEvents != null) {
                 selectedEvents.add(createEvent());
-                eventList.setListData(Objects.requireNonNull(selectedEvents).toArray(Event[]::new));
+                updateEvents();
             }
         });
+        removeEvent.addActionListener(e -> {
+            if (selectedEvents != null) {
+                selectedEvents.remove(eventList.getSelectedIndex());
+                updateEvents();
+            }
+        });
+        testEvents.addActionListener(e -> {
+            if (selectedEvents != null) {
+                Thread t = new Thread(() -> EventController.execute(selectedEvents));
+                t.start();
+            }
+        });
+        eventList.addListSelectionListener(e -> {
+            if (eventList.getSelectedIndex() < 0) return;
+            eventHandleable = false;
+            selectedEventIndex = eventList.getSelectedIndex();
+            var value = Arrays.stream(EVENTS).filter(i -> i.name.equals(selectedEvents.get(selectedEventIndex).name)).findAny();
+            value.ifPresent(event -> availableEvents.setSelectedItem(event));
+            availableEventTypes.setSelectedItem(selectedEvents.get(selectedEventIndex).getType());
+            eventHandleable = true;
+            args.setText(selectedEvents.get(selectedEventIndex).getArgs());
+        });
+
+        availableEventTypes.addItemListener(e -> {
+            if (eventHandleable && selectedEventIndex >= 0) {
+                selectedEvents.set(selectedEventIndex, selectedEvents.get(selectedEventIndex).getCopy(availableEventTypes.getSelectedIndex()));
+                updateEvents();
+            }
+        });
+        availableEvents.addItemListener(e -> {
+            if (eventHandleable && selectedEventIndex >= 0 && availableEvents.getSelectedItem() != null) {
+                selectedEvents.set(selectedEventIndex, ((Event)availableEvents.getSelectedItem()).getCopy(0));
+                updateEvents();
+            }
+        });
+        args.getDocument().addDocumentListener(new DocumentListener() {
+            public void update() {
+                if (eventHandleable && selectedEventIndex >= 0 && availableEvents.getSelectedItem() != null) {
+                    selectedEvents.get(selectedEventIndex).setArgs(args.getText().split("\n"));
+                }
+            }
+            @Override
+            public void insertUpdate(DocumentEvent e) { update(); }
+            @Override
+            public void removeUpdate(DocumentEvent e) { update(); }
+            @Override
+            public void changedUpdate(DocumentEvent e) {}
+        });
     }
+
+    private void updateEvents() {
+        eventList.setListData(Objects.requireNonNull(selectedEvents).toArray(Event[]::new));
+        eventList.setSelectedIndex(selectedEventIndex);
+    }
+
     private void onTreeSelected(TreeSelectionEvent e){
-        System.out.println(availableEvents.getModel());
         TreePath treePath = e.getPath();
         Object[] path = treePath.getPath();
         eventsPane.setVisible(false);
@@ -146,6 +203,7 @@ public class MainView {
             eventName.setEditable(true);
             eventName.setText(path[path.length - 1].toString());
             if (path.length == 2) {
+                eventType.setText("ディレクトリ");
                 eventDescription.setText("イベントAPIのルートです。\n名前を編集することが出来ますが、編集した場合は再起動が必要になります。");
                 return;
             }
@@ -158,9 +216,9 @@ public class MainView {
             }
 
             eventType.setText("イベント");
-            eventDescription.setText("イベントのグループです。編集、順序の変更、追加、削除が可能です。");
+            eventDescription.setText("イベントのグループです。編集、追加、削除が可能です。");
             selectedEvents = EventController.getEvents(path[2].toString(), path[3].toString());
-            eventList.setListData(Objects.requireNonNull(selectedEvents).toArray(Event[]::new));
+            updateEvents();
             eventsPane.setVisible(true);
         } else if (path.length == 2 && path[1].toString().equals("settings")) {
             eventType.setText("Webページ");
