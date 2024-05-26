@@ -250,6 +250,7 @@ public class MainView {
                 }
             }
         });
+        useHtmlSettings.addActionListener(e->LogController.LOGGER.log("この機能はまだ実装されていません"));
     }
 
     private void updateEvents() {
@@ -331,7 +332,7 @@ public class MainView {
                 }
             } else eventType.setText("エンドポイント");
 
-            eventDescription.setText(name + "\n注意：内部トークンを使用しているため通常の方法ではアクセスできません。");
+            eventDescription.setText(name + "\n\n\n\n\n[未実装です。]\n注意：内部トークンを使用しているため通常の方法ではアクセスできません。");
         }
 
     }

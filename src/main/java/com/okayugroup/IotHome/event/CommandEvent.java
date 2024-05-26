@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,8 @@ public class CommandEvent extends Event {
                 default -> command;
             });
             process.waitFor();
-            BufferedReader stream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            Charset charset = typeIndex == 0 ? StandardCharsets.UTF_8 : Charset.forName("MS932");
+            BufferedReader stream = new BufferedReader(new InputStreamReader(process.getInputStream(), charset));
             String line;
             List<String> result = new ArrayList<>();
             while ((line = stream.readLine()) != null) {

@@ -14,10 +14,23 @@
 
 package com.okayugroup.IotHome;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class Main {
     public static void main(String[] args) {
-        /*Thread t = new Thread(() -> IoTHomeApplication.main(args));
-        t.start();*/
-        MainView.main(args);
+        Thread t = new Thread(() -> IoTHomeApplication.main(args));
+        t.start();
+        try {
+            SwingUtilities.invokeLater(() -> MainView.main(args));
+        } catch (HeadlessException e) {
+            System.err.println("""
+                    ハードウェアがGUIに対応していないようです。
+                    このアプリはGUIが無くても動きますが、設定の方法が難しくなります。
+                    
+                    このエラーが予期したものではない場合はGitHubで報告してください。
+                    GUIのない環境で実行している場合は、アプリ実行時に生成されたevents.jsonを編集することで設定ができます。
+                    """);
+        }
     }
 }

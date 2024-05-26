@@ -22,25 +22,27 @@ public class EventController {
         if (tree == null) {
             try {
                 tree = UserEventsObject.fromFile();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.err.println("ファイルの読み込み中にエラーが発生しました。");
                 e.printStackTrace(System.out);
                 File file = new File("events.json");
                 try {
                     boolean ignored = file.createNewFile();
+                    tree = new UserEventsObject(new HashMap<>(), "api");
+                    tree.saveToFile();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                tree = new UserEventsObject(new HashMap<>(), "api");
+
             }
         }
         return tree;
     }
 
-    public static boolean execute(String root, String name) {
+    public static EventResult execute(String root, String name) {
         return execute(getEvents(root, name));
     }
-    public static boolean execute(List<Event> events) {
+    public static EventResult execute(List<Event> events) {
         if (events != null) {
             EventResult result = null;
             for (var event : events) {
@@ -48,7 +50,7 @@ public class EventController {
                     result = event.execute(result);
                     if (result == EventResult.ERROR) {
                         LogController.LOGGER.log(LogController.LogLevel.DEBUG, event.name + "からエラーが返りました。中断します。");
-                        return false;
+                        return result;
                     } else {
                         LogController.LOGGER.log(LogController.LogLevel.DEBUG, event.name + "が正常に終了し、" + result.result() + "が返りました。");
                     }
@@ -57,9 +59,9 @@ public class EventController {
                     LogController.LOGGER.log(LogController.LogLevel.ERROR, "ハンドルされていない例外: " + e.getMessage());
                 }
             }
-            return true;
+            return result;
         } else {
-            return false;
+            return EventResult.ERROR;
         }
     }
     public static List<Event> getEvents(String root, String name){
@@ -71,11 +73,6 @@ public class EventController {
             }
         }
         return null;
-    }
-
-    public static void main(String ...args) {
-        boolean pr = execute("get", "profile1");
-        System.out.println(pr);
     }
 
     public static boolean containsEvent(String root, String text) {

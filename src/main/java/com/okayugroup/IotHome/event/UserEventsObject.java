@@ -13,7 +13,7 @@ import java.util.*;
 public record UserEventsObject(Map<String, Map<String, List<Event>>> events, String rootName) {
     public static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-    public static UserEventsObject fromFile() throws IOException {
+    public static UserEventsObject fromFile() throws Exception {
         JsonNode node = objectMapper.readTree(new File("events.json"));
         String rootName = "api"; //node.get("root").asText()
         JsonNode children = node.get("children");
