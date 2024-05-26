@@ -25,7 +25,7 @@ public abstract class Event {
     public EventTemplate[] getTemplates() {
         return templates;
     }
-    public abstract String getArgs();
+    public abstract String[] getArgs();
     public abstract Event setArgs(String... args);
 
     @Override

@@ -1,17 +1,38 @@
 package com.okayugroup.IotHome.event;
 
 import com.okayugroup.IotHome.LogController;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class EventController {
-    private static Map<String, Map<String, List<Event>>> tree = null;
-    public static Map<String, Map<String, List<Event>>> getTree() {
+    private static UserEventsObject tree = null;
+    public static final Map<String, Event> EVENT_DICT = initEvents();
+
+    private static @NotNull Map<String, Event> initEvents() {
+        Map<String, Event> events = new LinkedHashMap<>();
+        events.put(CommandEvent.class.getSimpleName(), CommandEvent.ConsoleCommand());
+        events.put(FileExecutionEvent.class.getSimpleName(), FileExecutionEvent.ExecuteFile());
+        return events;
+    }
+
+    public static UserEventsObject getTree() {
         if (tree == null) {
-            tree = Map.of("get", Map.of("profile1", new ArrayList<>(List.of(CommandEvent.CmdPromptCommand().setArgs("dir"), FileExecutionEvent.PlaySound().setArgs("C:\\Users\\yaido\\Music\\ドーン.mp3")))));
+            try {
+                tree = UserEventsObject.fromFile();
+            } catch (IOException e) {
+                System.err.println("ファイルの読み込み中にエラーが発生しました。");
+                e.printStackTrace(System.out);
+                File file = new File("events.json");
+                try {
+                    boolean ignored = file.createNewFile();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                tree = new UserEventsObject(new HashMap<>(), "api");
+            }
         }
         return tree;
     }
@@ -33,7 +54,7 @@ public class EventController {
                     }
 
                 } catch (Exception e) {
-                    LogController.LOGGER.log(LogController.LogLevel.ERROR, "Unhandled exception: " + e.getMessage());
+                    LogController.LOGGER.log(LogController.LogLevel.ERROR, "ハンドルされていない例外: " + e.getMessage());
                 }
             }
             return true;
@@ -43,8 +64,8 @@ public class EventController {
     }
     public static List<Event> getEvents(String root, String name){
         var tree = getTree();
-        if (tree.containsKey(root)) {
-            var node = tree.get(root);
+        if (tree.events().containsKey(root)) {
+            var node = tree.events().get(root);
             if (node.containsKey(name)) {
                 return node.get(name);
             }
@@ -55,5 +76,42 @@ public class EventController {
     public static void main(String ...args) {
         boolean pr = execute("get", "profile1");
         System.out.println(pr);
+    }
+
+    public static boolean containsEvent(String root, String text) {
+
+        return getTree().events().get(root).containsKey(text);
+    }
+    public static void setEvent(String root, String oldName, String newName) {
+        Map<String, List<Event>> rootMap = getTree().events().get(root);
+        List<Event> value = rootMap.get(oldName);
+        rootMap.remove(oldName, value);
+        rootMap.put(newName, value);
+    }
+    public static void setEvent(String oldRootName, String newRootName) {
+        Map<String, List<Event>> value = getTree().events().get(oldRootName);
+        getTree().events().remove(oldRootName, value);
+        getTree().events().put(newRootName, value);
+    }
+
+    public static boolean containsOnRoot(String root) {
+        return getTree().events().containsKey(root);
+    }
+
+    public static void putNewOnRoot(String name) {
+        getTree().events().put(name, new HashMap<>());
+    }
+
+    public static void putNewEvent(String root, String name) {
+        getTree().events().get(root).put(name, new ArrayList<>());
+    }
+
+    public static void saveTree() {
+        try {
+            getTree().saveToFile();
+        } catch (IOException e) {
+            LogController.LOGGER.log(LogController.LogLevel.ERROR, "ファイルの書き込み中にエラーが発生しました。");
+            e.printStackTrace(System.out);
+        }
     }
 }

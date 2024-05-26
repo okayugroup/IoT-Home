@@ -50,8 +50,8 @@ public class CommandEvent extends Event {
     }
 
     @Override
-    public String getArgs() {
-        return command;
+    public String[] getArgs() {
+        return new String[]{command};
     }
 
     @Override

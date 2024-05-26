@@ -3,6 +3,7 @@ package com.okayugroup.IotHome;
 import com.okayugroup.IotHome.event.*;
 import com.okayugroup.IotHome.event.Event;
 import jakarta.annotation.Nullable;
+import org.apache.catalina.mbeans.SparseUserDatabaseMBean;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class MainView {
-    public static final Event[] EVENTS = {CommandEvent.ConsoleCommand(), FileExecutionEvent.ExecuteFile()};
+    public static final Event[] EVENTS = EventController.EVENT_DICT.values().toArray(new Event[0]);
     private JPanel formPanel;
     private JTextArea logArea;
     private JCheckBox useHtmlSettings;
@@ -36,11 +37,17 @@ public class MainView {
     private JButton removeEvent;
     private JComboBox<EventTemplate> availableEventTypes;
     private JButton testEvents;
+    private JButton save;
+    private JButton newDirectory;
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private int selectedEventIndex = -1;
     private boolean eventHandleable = true;
-
+    private String root;
+    private String name;
     private List<Event> selectedEvents = null;
+    private boolean modifiable = false;
+    private boolean isEventRoot = false;
+    private static final String webRootName = EventController.getTree().rootName();
     public static void main(String[] args) {
         Font font = loadFont();
         setUIFont(new FontUIResource(font.deriveFont(10f)));
@@ -99,8 +106,8 @@ public class MainView {
     }
     private void createUIComponents() {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("<ルート>");
-        DefaultMutableTreeNode apiRoot = new DefaultMutableTreeNode("api");
-        for (var row: EventController.getTree().entrySet()) {
+        DefaultMutableTreeNode apiRoot = new DefaultMutableTreeNode(webRootName);
+        for (var row: EventController.getTree().events().entrySet()) {
             DefaultMutableTreeNode dir = new DefaultMutableTreeNode(row.getKey());
             for (var col: row.getValue().entrySet()) {
                 dir.add(new DefaultMutableTreeNode(col.getKey()));
@@ -121,7 +128,6 @@ public class MainView {
 
     }
     private void initComponents() {
-
         // 選択可能なイベントを初期化
         DefaultComboBoxModel<Event> events = new DefaultComboBoxModel<>(EVENTS);
         availableEvents.setModel(events);
@@ -155,7 +161,7 @@ public class MainView {
             value.ifPresent(event -> availableEvents.setSelectedItem(event));
             availableEventTypes.setSelectedItem(selectedEvents.get(selectedEventIndex).getType());
             eventHandleable = true;
-            args.setText(selectedEvents.get(selectedEventIndex).getArgs());
+            args.setText(String.join("\n", selectedEvents.get(selectedEventIndex).getArgs()));
         });
 
         availableEventTypes.addItemListener(e -> {
@@ -168,6 +174,37 @@ public class MainView {
             if (eventHandleable && selectedEventIndex >= 0 && availableEvents.getSelectedItem() != null) {
                 selectedEvents.set(selectedEventIndex, ((Event)availableEvents.getSelectedItem()).getCopy(0));
                 updateEvents();
+            }
+        });
+        eventName.addActionListener(e -> {
+            if (eventHandleable) {
+                String text = eventName.getText();
+                if (root == null) {
+                    if (text.isEmpty() || text.isBlank() || text.equals("private") || text.equals("settings")) {
+                        eventName.setForeground(Color.RED);
+                        LogController.LOGGER.log(LogController.LogLevel.ERROR, "\"private\", \"settings\", 空白・スペースは使用できません。");
+                    } else {
+                        eventName.setForeground(Color.BLACK);
+                        //webRootName = text; // NOTICE: 名前変更するならここも実装しましょう
+                        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) webTree.getLastSelectedPathComponent();
+                        selectedNode.setUserObject(text);
+                        ((DefaultTreeModel) webTree.getModel()).nodeChanged(selectedNode);
+
+                    }
+                } else if (text.isEmpty() || text.isBlank() || (name == null ? EventController.containsOnRoot(root) : EventController.containsEvent(root, text))) {
+                    eventName.setForeground(Color.RED);
+                    Toolkit.getDefaultToolkit().beep(); // 操作が無効の音を鳴らす
+                    LogController.LOGGER.log(LogController.LogLevel.ERROR, "同じ名前、重複する名前、空白・スペースは使用できません。");
+                } else {
+                    eventName.setForeground(Color.BLACK);
+                    DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) webTree.getLastSelectedPathComponent();
+                    selectedNode.setUserObject(text);
+                    ((DefaultTreeModel) webTree.getModel()).nodeChanged(selectedNode);
+                    if (name == null)
+                        EventController.setEvent(root, text);
+                    else
+                        EventController.setEvent(root, name, text);
+                }
             }
         });
         args.getDocument().addDocumentListener(new DocumentListener() {
@@ -183,6 +220,36 @@ public class MainView {
             @Override
             public void changedUpdate(DocumentEvent e) {}
         });
+        save.addActionListener(e -> EventController.saveTree());
+        newDirectory.addActionListener(e -> {
+            if (modifiable) {
+                String name;
+                if (isEventRoot) {
+                    name = "directory";
+                    int i = 0;
+                    do {
+                        i++;
+                    } while (EventController.containsOnRoot(name + i));
+                    name += i;
+                } else {
+                    name = "event";
+                    int i = 0;
+                    do {
+                        i++;
+                    } while (EventController.containsEvent(root, name + i));
+                    name += i;
+                }
+                DefaultMutableTreeNode root = ((DefaultMutableTreeNode) webTree.getLastSelectedPathComponent());
+                DefaultMutableTreeNode newValue = new DefaultMutableTreeNode(name);
+                root.add(newValue);
+                ((DefaultTreeModel) webTree.getModel()).reload();
+                if (isEventRoot) {
+                    EventController.putNewOnRoot(name);
+                } else {
+                    EventController.putNewEvent(this.root, name);
+                }
+            }
+        });
     }
 
     private void updateEvents() {
@@ -191,6 +258,8 @@ public class MainView {
     }
 
     private void onTreeSelected(TreeSelectionEvent e){
+        modifiable = false;
+        newDirectory.setEnabled(false);
         TreePath treePath = e.getPath();
         Object[] path = treePath.getPath();
         eventsPane.setVisible(false);
@@ -199,25 +268,43 @@ public class MainView {
             eventName.setText("ルート");
             eventDescription.setText("すべてのAPIのルートディレクトリです");
             eventName.setEditable(false); //親の名前が変更されることを防ぎます
-        } else if (path[1].toString().equals("api")) { // root
-            eventName.setEditable(true);
+        } else if (path[1].toString().equals(webRootName)) { // root
+            eventName.setEditable(false);  // TODO: 編集できるようにするべきである。
             eventName.setText(path[path.length - 1].toString());
+            isEventRoot = path.length == 2;
+            root = null;
+            name = null;
+
             if (path.length == 2) {
+                modifiable = true;
+                newDirectory.setEnabled(true);
                 eventType.setText("ディレクトリ");
-                eventDescription.setText("イベントAPIのルートです。\n名前を編集することが出来ますが、編集した場合は再起動が必要になります。");
+                eventDescription.setText("""
+                        イベントAPIのルートです。
+                        名前は編集できません。
+
+
+                        実は名前を編集することが出来るようにするつもりでした。
+                        難しそうです...。
+                        今後実装するかも
+                        """);
                 return;
             }
             if (path.length < 4) {
-                {
-                    eventType.setText("ディレクトリ");
-                    eventDescription.setText("表示するものがありません");
-                }
+                modifiable = true;
+                newDirectory.setEnabled(true);
+                eventName.setEditable(true);
+                eventType.setText("ディレクトリ");
+                eventDescription.setText("表示するものがありません");
+                root = path[2].toString();
+                name = null;
                 return;
             }
 
             eventType.setText("イベント");
             eventDescription.setText("イベントのグループです。編集、追加、削除が可能です。");
-            selectedEvents = EventController.getEvents(path[2].toString(), path[3].toString());
+            selectedEvents = EventController.getEvents(root = path[2].toString(), name = path[3].toString());
+
             updateEvents();
             eventsPane.setVisible(true);
         } else if (path.length == 2 && path[1].toString().equals("settings")) {

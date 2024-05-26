@@ -44,8 +44,8 @@ public class FileExecutionEvent extends Event {
     }
 
     @Override
-    public String getArgs() {
-        return directory == null ? filePath : filePath + "\n" + directory;
+    public String[] getArgs() {
+        return directory == null ? new String[]{filePath} : new String[]{filePath, directory};
     }
 
     @Override
@@ -67,7 +67,7 @@ public class FileExecutionEvent extends Event {
                     int exitCode = process.waitFor();
                     return new EventResult(getType(), exitCode, List.of());
                 } catch (Exception e) {
-                    LogController.LOGGER.log("Exception occurred while executing file " + filePath + "\n" + e.getMessage());
+                    LogController.LOGGER.log(LogController.LogLevel.ERROR, "ファイル実行中の例外 " + filePath + "\n" + e.getMessage());
                     return EventResult.ERROR;
                 }
             case 1:
@@ -80,7 +80,7 @@ public class FileExecutionEvent extends Event {
                     player.play();
                     return new EventResult(getType(), 0, List.of());
                 } catch (IOException | JavaLayerException e) {
-                    LogController.LOGGER.log("Exception occurred while playing audio file " + filePath + "\n" + e.getMessage());
+                    LogController.LOGGER.log(LogController.LogLevel.ERROR, "音声ファイル再生中の例外 " + filePath + "\n" + e.getMessage());
                     return EventResult.ERROR;
                 }
         }
