@@ -1,28 +1,36 @@
 package com.okayugroup.IotHome.event;
 
-import java.io.IOException;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class Event {
-    public Event(String... args){
-        this();
+    protected final int typeIndex;
+    private final EventTemplate type;
+    private final EventTemplate[] templates;
+    protected Event(String NAME, int type, String... args){
+        this.name = NAME;
+        templates = initializeEvents();
+        typeIndex = type;
+        this.type = templates[type];
+        setArgs(args);
     }
-    public Event() {
-        type = getThisType();
-    }
-    protected final EventType type;
-
-    protected abstract EventType getThisType();
-    public enum EventType {
-        COMMAND,
-        EXEC_FILE,
-        InternetRequest,
-        PLAY_SOUND,
-        Condition,
-    }
-
-    public EventType getType() {
+    protected abstract EventTemplate[] initializeEvents();
+    public EventTemplate getType() {
         return type;
     }
+    public abstract Event getCopy(int typeIndex);
+    public Event getCopy() {
+        return getCopy(typeIndex);
+    }
+    public final String name;
+    public EventTemplate[] getTemplates() {
+        return templates;
+    }
+    public abstract String[] getArgs();
+    public abstract Event setArgs(String... args);
 
-    public abstract EventResult execute(EventResult previousResult) throws IOException, InterruptedException;
+    @Override
+    public String toString() {
+        return type.name();
+    }
+    public abstract EventResult execute(@Nullable EventResult previousResult);
 }

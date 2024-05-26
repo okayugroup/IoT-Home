@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Main-Class: com.okayugroup.IotHome.Main
+Class-Path: logback-core-1.4.14.jar spring-boot-3.2.5.jar spring-boot-st
+ arter-web-3.2.5.jar tomcat-embed-el-10.1.20.jar jackson-core-2.15.4.jar
+  logback-classic-1.4.14.jar jakarta.annotation-api-2.1.1.jar jackson-da
+ tabind-2.15.4.jar annotations-24.1.0.jar jul-to-slf4j-2.0.13.jar spring
+ -boot-starter-3.2.5.jar snakeyaml-2.2.jar spring-boot-starter-tomcat-3.
+ 2.5.jar log4j-core-3.0.0-beta2.jar spring-expression-6.1.6.jar spring-j
+ cl-6.1.6.jar jackson-module-parameter-names-2.15.4.jar spring-boot-star
+ ter-json-3.2.5.jar slf4j-api-2.0.13.jar jackson-annotations-2.15.4.jar 
+ log4j-api-2.21.1.jar jlayer-1.0.1.jar tomcat-embed-core-10.1.20.jar spr
+ ing-core-6.1.6.jar spring-context-6.1.6.jar tomcat-embed-websocket-10.1
+ .20.jar spring-web-6.1.6.jar log4j-plugins-3.0.0-beta2.jar spring-boot-
+ starter-logging-3.2.5.jar jackson-datatype-jdk8-2.15.4.jar spring-aop-6
+ .1.6.jar jackson-datatype-jsr310-2.15.4.jar micrometer-observation-1.12
+ .5.jar spring-beans-6.1.6.jar spring-boot-autoconfigure-3.2.5.jar micro
+ meter-commons-1.12.5.jar spring-webmvc-6.1.6.jar log4j-to-slf4j-2.21.1.
+ jar
+
