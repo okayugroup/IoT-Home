@@ -52,7 +52,7 @@ public class MainView {
         Font font = loadFont();
         setUIFont(new FontUIResource(font.deriveFont(10f)));
 
-        JFrame frame = new JFrame("UserForm");
+        JFrame frame = new JFrame("IoT-Home");
         MainView view = new MainView();
         view.initComponents();
         new LogController(view);
