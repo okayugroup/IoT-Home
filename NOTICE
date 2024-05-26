@@ -1,0 +1,19 @@
+This product includes software developed by Yusei Yoshioka (https://github.com/yossy4411).
+
+This product includes libraries and components licensed under the following terms:
+
+- Spring Boot
+  Licensed under the Apache License 2.0.
+  See https://github.com/spring-projects/spring-boot/blob/main/LICENSE.txt for details.
+
+- Jackson
+  Licensed under the Apache License 2.0.
+  See https://github.com/FasterXML/jackson-databind/blob/master/LICENSE for details.
+
+- javazoom.jlayer
+  Licensed under the LGPL License.
+  See https://github.com/mahozad/jlayer/blob/master/LICENSE (mirror) for details.
+
+- Noto Sans JP
+  Licensed under Open Font License.
+  See https://fonts.google.com/noto/specimen/Noto+Sans+JP/about for details.

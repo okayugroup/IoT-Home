@@ -1,9 +1,22 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.okayugroup.IotHome;
 
 import com.okayugroup.IotHome.event.*;
 import com.okayugroup.IotHome.event.Event;
 import jakarta.annotation.Nullable;
-import org.apache.catalina.mbeans.SparseUserDatabaseMBean;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -191,7 +204,7 @@ public class MainView {
                         ((DefaultTreeModel) webTree.getModel()).nodeChanged(selectedNode);
 
                     }
-                } else if (text.isEmpty() || text.isBlank() || (name == null ? EventController.containsOnRoot(root) : EventController.containsEvent(root, text))) {
+                } else if (text.isEmpty() || text.isBlank() || (name == null ? EventController.containsOnRoot(text) : EventController.containsEvent(root, text))) {
                     eventName.setForeground(Color.RED);
                     Toolkit.getDefaultToolkit().beep(); // 操作が無効の音を鳴らす
                     LogController.LOGGER.log(LogController.LogLevel.ERROR, "同じ名前、重複する名前、空白・スペースは使用できません。");
@@ -200,10 +213,13 @@ public class MainView {
                     DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) webTree.getLastSelectedPathComponent();
                     selectedNode.setUserObject(text);
                     ((DefaultTreeModel) webTree.getModel()).nodeChanged(selectedNode);
-                    if (name == null)
+                    if (name == null) {
                         EventController.setEvent(root, text);
-                    else
+                        root = text;
+                    } else {
                         EventController.setEvent(root, name, text);
+                        name = text;
+                    }
                 }
             }
         });
@@ -270,7 +286,7 @@ public class MainView {
             eventDescription.setText("すべてのAPIのルートディレクトリです");
             eventName.setEditable(false); //親の名前が変更されることを防ぎます
         } else if (path[1].toString().equals(webRootName)) { // root
-            eventName.setEditable(false);  // TODO: 編集できるようにするべきである。
+            eventName.setEditable(true);
             eventName.setText(path[path.length - 1].toString());
             isEventRoot = path.length == 2;
             root = null;
@@ -279,6 +295,7 @@ public class MainView {
             if (path.length == 2) {
                 modifiable = true;
                 newDirectory.setEnabled(true);
+                eventName.setEditable(false);  // TODO: 編集できるようにするべきである。
                 eventType.setText("ディレクトリ");
                 eventDescription.setText("""
                         イベントAPIのルートです。
@@ -294,7 +311,6 @@ public class MainView {
             if (path.length < 4) {
                 modifiable = true;
                 newDirectory.setEnabled(true);
-                eventName.setEditable(true);
                 eventType.setText("ディレクトリ");
                 eventDescription.setText("表示するものがありません");
                 root = path[2].toString();
