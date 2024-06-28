@@ -1,6 +1,9 @@
 package com.okayugroup.IotHome.event;
 
 import com.okayugroup.IotHome.LogController;
+import com.okayugroup.IotHome.event.temporary.CommandEvent;
+import com.okayugroup.IotHome.event.temporary.FileExecutionEvent;
+import jakarta.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -9,12 +12,15 @@ import java.util.*;
 
 public class EventController {
     private static UserEventsObject tree = null;
-    public static final Map<String, Event> EVENT_DICT = initEvents();
+    public static final Map<String, Event<?>> EVENT_DICT = initEvents();
 
-    private static @NotNull Map<String, Event> initEvents() {
-        Map<String, Event> events = new LinkedHashMap<>();
-        events.put(CommandEvent.class.getSimpleName(), CommandEvent.ConsoleCommand());
-        events.put(FileExecutionEvent.class.getSimpleName(), FileExecutionEvent.ExecuteFile());
+    private static @NotNull Map<String, Event<?>> initEvents() {
+        Map<String, Event<?>> events = new LinkedHashMap<>();
+        events.put(CommandEvent.ConsoleCommand.class.getSimpleName(), new CommandEvent.ConsoleCommand());
+        events.put(CommandEvent.CommandPromptCommand.class.getSimpleName(), new CommandEvent.CommandPromptCommand());
+        events.put(CommandEvent.PowershellCommand.class.getSimpleName(), new CommandEvent.PowershellCommand());
+        events.put(FileExecutionEvent.ExecuteFile.class.getSimpleName(), new FileExecutionEvent.ExecuteFile());
+        events.put(FileExecutionEvent.PlaySound.class.getSimpleName(), new FileExecutionEvent.PlaySound());
         return events;
     }
 
@@ -25,10 +31,10 @@ public class EventController {
             } catch (Exception e) {
                 System.err.println("ファイルの読み込み中にエラーが発生しました。");
                 e.printStackTrace(System.out);
-                File file = new File("events.json");
+                File file = new File("inputs.json");
                 try {
                     boolean ignored = file.createNewFile();
-                    tree = new UserEventsObject(new HashMap<>(), "api");
+                    tree = new UserEventsObject(new HashMap<>(), new ArrayList<>());
                     tree.saveToFile();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
@@ -39,35 +45,17 @@ public class EventController {
         return tree;
     }
 
-    public static EventResult execute(String root, String name) {
-        return execute(getEvents(root, name));
+    @Nullable
+    public static EventResult<?> execute(String root, String name) {
+        LinkedEvent event = getEvents(root, name);
+        if (event == null) return null;
+        return event.execute();
     }
-    public static EventResult execute(List<Event> events) {
-        if (events != null) {
-            EventResult result = null;
-            for (var event : events) {
-                try {
-                    result = event.execute(result);
-                    if (result == EventResult.ERROR) {
-                        LogController.LOGGER.log(LogController.LogLevel.DEBUG, event.name + "からエラーが返りました。中断します。");
-                        return result;
-                    } else {
-                        LogController.LOGGER.log(LogController.LogLevel.DEBUG, event.name + "が正常に終了し、" + result.result() + "が返りました。");
-                    }
 
-                } catch (Exception e) {
-                    LogController.LOGGER.log(LogController.LogLevel.ERROR, "ハンドルされていない例外: " + e.getMessage());
-                }
-            }
-            return result;
-        } else {
-            return EventResult.ERROR;
-        }
-    }
-    public static List<Event> getEvents(String root, String name){
+    public static LinkedEvent getEvents(String root, String name){
         var tree = getTree();
-        if (tree.events().containsKey(root)) {
-            var node = tree.events().get(root);
+        if (tree.inputs().containsKey(root)) {
+            var node = tree.inputs().get(root);
             if (node.containsKey(name)) {
                 return node.get(name);
             }
@@ -75,33 +63,51 @@ public class EventController {
         return null;
     }
 
+    /*public static void addEvent(Event<?> event) {
+        if (event instanceof InputEvent<?> input) {
+            if (!tree.inputs().containsKey(input.getParentName())) {
+                HashMap<String, List<Event<?>>> h = new HashMap<>();
+                List<Event<?>> l = new ArrayList<>();
+                l.add(event);
+                h.put(input.getChildName(), l);
+                tree.inputs().put(input.getParentName(), h);
+            } else if (!tree.inputs().get(input.getParentName()).containsKey(input.getChildName())) {
+                List<Event<?>> l = new ArrayList<>();
+                l.add(event);
+                tree.inputs().get(input.getParentName()).put(input.getChildName(), l);
+            } else {
+                tree.inputs().get(input.getParentName()).get(input.getChildName()).add(event);
+            }
+        }
+        tree.events().add(event);
+    }
     public static boolean containsEvent(String root, String text) {
 
-        return getTree().events().get(root).containsKey(text);
+        return getTree().inputs().get(root).containsKey(text);
     }
     public static void setEvent(String root, String oldName, String newName) {
-        Map<String, List<Event>> rootMap = getTree().events().get(root);
-        List<Event> value = rootMap.get(oldName);
+        Map<String, List<Event<?>>> rootMap = getTree().inputs().get(root);
+        List<Event<?>> value = rootMap.get(oldName);
         rootMap.remove(oldName, value);
         rootMap.put(newName, value);
     }
     public static void setEvent(String oldRootName, String newRootName) {
-        Map<String, List<Event>> value = getTree().events().get(oldRootName);
-        getTree().events().remove(oldRootName, value);
-        getTree().events().put(newRootName, value);
+        Map<String, List<Event<?>>> value = getTree().inputs().get(oldRootName);
+        getTree().inputs().remove(oldRootName, value);
+        getTree().inputs().put(newRootName, value);
     }
 
     public static boolean containsOnRoot(String root) {
-        return getTree().events().containsKey(root);
+        return getTree().inputs().containsKey(root);
     }
 
     public static void putNewOnRoot(String name) {
-        getTree().events().put(name, new HashMap<>());
+        getTree().inputs().put(name, new HashMap<>());
     }
 
     public static void putNewEvent(String root, String name) {
-        getTree().events().get(root).put(name, new ArrayList<>());
-    }
+        getTree().inputs().get(root).put(name, new ArrayList<>());
+    }*/
 
     public static void saveTree() {
         try {

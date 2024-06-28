@@ -1,9 +1,16 @@
 package com.okayugroup.IotHome.event;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record EventResult(@Nullable EventTemplate type, int endCode, List<String> result){
-    public static final EventResult ERROR = new EventResult(null, -1, List.of());
+public record EventResult<T>(@Nullable Exception exception, T result){
+    @Contract(pure = true)
+    public boolean isError() {
+        return exception != null;
+    }
+    public Class<?> getReturns(){
+        return result.getClass();
+    }
 }

@@ -15,20 +15,19 @@
 package com.okayugroup.IotHome;
 
 import com.okayugroup.IotHome.event.EventController;
-import com.okayugroup.IotHome.event.EventResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 
 @RestController
 public class Resources {
     public final String parent = "/api"; // API側の親を定義します
     @GetMapping(parent + "/{root}/{controller}")
-    public List<String> getIt(@PathVariable String root, @PathVariable String controller) {
-        return EventController.execute(root, controller).result();
+    public Object getIt(@PathVariable String root, @PathVariable String controller) {
+        var re = EventController.execute(root, controller);
+        if (re != null) return re.result();
+        return null;
     }
 
 }
