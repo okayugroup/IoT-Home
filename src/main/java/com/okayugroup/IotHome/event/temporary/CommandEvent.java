@@ -3,6 +3,7 @@ package com.okayugroup.IotHome.event.temporary;
 import com.okayugroup.IotHome.LogController;
 import com.okayugroup.IotHome.event.EventResult;
 import com.okayugroup.IotHome.event.TemporaryEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -28,8 +29,8 @@ public abstract class CommandEvent extends TemporaryEvent<List<String>> {
     }
 
     @Override
-    public String[] getArgs() {
-        return new String[]{command};
+    public @NotNull String @NotNull [] getArgs() {
+        return command == null ? new String[0] : new String[]{command};
     }
 
     EventResult<List<String>> execute(@Nullable EventResult<?> previousResult, int typeIndex)  {
@@ -91,14 +92,14 @@ public abstract class CommandEvent extends TemporaryEvent<List<String>> {
             return execute(previousResult, 1);
         }
     }
-    public static class CommandPromptCommand extends CommandEvent {
-       public CommandPromptCommand(String... args) {
+    public static class CmdPromptCommand extends CommandEvent {
+       public CmdPromptCommand(String... args) {
            super("Windows コマンドプロンプト コマンド", args);
        }
 
        @Override
-        public CommandPromptCommand getCopy() {
-           return new CommandPromptCommand(getArgs());
+        public CmdPromptCommand getCopy() {
+           return new CmdPromptCommand(getArgs());
        }
 
         @Override

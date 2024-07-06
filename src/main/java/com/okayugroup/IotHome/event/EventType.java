@@ -5,5 +5,4 @@ public enum EventType {
     OUTPUT,
     OPERATOR,
     TEMPORARY,
-    UNKNOWN
 }

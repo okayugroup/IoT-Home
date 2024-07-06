@@ -12,16 +12,22 @@ import java.util.*;
 
 public class EventController {
     private static UserEventsObject tree = null;
-    public static final Map<String, Event<?>> EVENT_DICT = initEvents();
+    public static final Map<String, TemplatedEvent> EVENT_DICT = initEvents();
 
-    private static @NotNull Map<String, Event<?>> initEvents() {
-        Map<String, Event<?>> events = new LinkedHashMap<>();
-        events.put(CommandEvent.ConsoleCommand.class.getSimpleName(), new CommandEvent.ConsoleCommand());
-        events.put(CommandEvent.CommandPromptCommand.class.getSimpleName(), new CommandEvent.CommandPromptCommand());
-        events.put(CommandEvent.PowershellCommand.class.getSimpleName(), new CommandEvent.PowershellCommand());
-        events.put(FileExecutionEvent.ExecuteFile.class.getSimpleName(), new FileExecutionEvent.ExecuteFile());
-        events.put(FileExecutionEvent.PlaySound.class.getSimpleName(), new FileExecutionEvent.PlaySound());
-        return events;
+    private static @NotNull Map<String, TemplatedEvent> initEvents() {
+        Map<String, TemplatedEvent> events = new LinkedHashMap<>();
+        add(events, new CommandEvent.ConsoleCommand(), "実行するコマンド");
+        add(events, new CommandEvent.CmdPromptCommand(), "実行するWindowsコマンド");
+        add(events, new CommandEvent.PowershellCommand(), "実行するPowerShellコマンド");
+        add(events, new FileExecutionEvent.ExecuteFile(), "実行するファイル", "実行元のディレクトリ");
+        add(events, new FileExecutionEvent.PlaySound(), "再生する音声ファイル (*.wav,*.mp3)");
+        return Map.copyOf(events);
+    }
+    public static TemplatedEvent getTemplate(Event<?> event) {
+        return EVENT_DICT.get(event.getTypicalName());
+    }
+    private static void add(Map<String, TemplatedEvent> events, Event<?> event, String... argDescriptions) {
+        events.put(event.getTypicalName(), new TemplatedEvent(event, argDescriptions));
     }
 
     public static UserEventsObject getTree() {
@@ -41,6 +47,9 @@ public class EventController {
                 }
 
             }
+            tree.events().add(new LinkedEvent(new CommandEvent.CmdPromptCommand("dir"), 0, 50, 200, 100));
+            tree.events().add(new LinkedEvent(new FileExecutionEvent.PlaySound("C:\\Users\\yaido\\Music\\ミンミンゼミが鳴く雑木林.mp3"), 100, 70, 200, 100));
+            tree.events().add(new LinkedEvent(new FileExecutionEvent.ExecuteFile("notepad.exe"), 120, 90, 250, 120));
         }
         return tree;
     }

@@ -19,7 +19,7 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
         List<List<Integer>> indices = new ArrayList<>();
         for (JsonNode node1 : node.get("events")) {
             var value = node1.get("event");
-            Event<?> event = EventController.EVENT_DICT.get(value.get("type").asText()).getCopy();
+            Event<?> event = EventController.EVENT_DICT.get(value.get("type").asText()).getNew();
             ArrayNode argsNode = ((ArrayNode) value.get("args"));
             String[] args = new String[argsNode.size()];
             for (int i = 0; i < argsNode.size(); i++) {
@@ -30,11 +30,12 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
             for (JsonNode link : node1.get("links")) {
                 indices2.add(link.asInt());
             }
-            events.add(new LinkedEvent(event));
+
+            events.add(new LinkedEvent(event, node1.get("x").asDouble(), node1.get("y").asDouble(), node1.get("width").asDouble(), node1.get("height").asDouble()));
             indices.add(indices2);
         }
         for (int i = 0; i < events.size(); i++) {
-            events.get(i).setEvents(indices.get(i).stream().map(events::get).toArray(LinkedEvent[]::new));
+            Collections.addAll(events.get(i).getEvents(), indices.get(i).stream().map(events::get).toArray(LinkedEvent[]::new));
         }
         JsonNode children = node.get("input");
         Map<String, Map<String, LinkedEvent>> tree = new HashMap<>();
@@ -45,22 +46,9 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
             Iterator<Map.Entry<String, JsonNode>> childNames = childE.getValue().fields();
             while (childNames.hasNext()) {
                 Map.Entry<String, JsonNode> childNameE = childNames.next();
-                var value = childNameE.getValue().get("event");
-                Event<?> event = EventController.EVENT_DICT.get(value.get("type").asText()).getCopy();
-                ArrayNode argsNode = ((ArrayNode) value.get("args"));
-                String[] args = new String[argsNode.size()];
-                for (int i = 0; i < argsNode.size(); i++) {
-                    args[i] = argsNode.get(i).asText();
-                }
-                event.setArgs(args);
-                LinkedEvent event1 = new LinkedEvent(event);
-                List<LinkedEvent> links = new ArrayList<>();
-                for (JsonNode node3 : childNameE.getValue().get("links")) {
-                    links.add(events.get(node3.intValue()));
-                }
-                event1.setEvents(links.toArray(LinkedEvent[]::new));
+                int index = childNameE.getValue().intValue();
 
-                child.put(childNameE.getKey(), event1);
+                child.put(childNameE.getKey(), events.get(index));
             }
             tree.put(childE.getKey(), child);
         }
@@ -73,21 +61,7 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
         for (Map.Entry<String, Map<String, LinkedEvent>> entry : inputs.entrySet()) {
             ObjectNode child = objectMapper.createObjectNode();
             for (Map.Entry<String, LinkedEvent> entry2 : entry.getValue().entrySet()) {
-                LinkedEvent event = entry2.getValue();
-                ObjectNode eventNode = objectMapper.createObjectNode();
-                ArrayNode links = objectMapper.createArrayNode();
-                for (LinkedEvent linkedEvent : event.redirect()) {
-                    links.add(events.indexOf(linkedEvent));
-                }
-                eventNode.set("links", links);
-                ObjectNode value = objectMapper.createObjectNode();
-                value.put("type", event.getEvent().getClass().getTypeName());
-                ArrayNode args = objectMapper.createArrayNode();
-                for (String arg : event.getEvent().getArgs()) {
-                    args.add(arg);
-                }
-                value.set("args", args);
-                child.set(entry2.getKey(), value);
+                child.put(entry2.getKey(), events.indexOf(entry2.getValue()));
             }
             children.set(entry.getKey(), child);
         }
@@ -96,7 +70,7 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
         for (LinkedEvent event : events) {
             ObjectNode eventNode = objectMapper.createObjectNode();
             ArrayNode links = objectMapper.createArrayNode();
-            for (LinkedEvent linkedEvent : event.redirect()) {
+            for (LinkedEvent linkedEvent : event.getEvents()) {
                 links.add(events.indexOf(linkedEvent));
             }
             eventNode.set("links", links);
@@ -109,7 +83,7 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
             value.set("args", args);
             values.add(value);
         }
-        root.set("events", children);
+        root.set("events", values);
         objectMapper.writeValue(new File("inputs.json"), root);
     }
 }

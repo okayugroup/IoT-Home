@@ -28,6 +28,8 @@ public class MainView {
     private JCheckBox useHtmlSettings;
     public static Font Font = loadFont();
     private JPanel eventsPane;
+    private JButton 保存Button;
+    private JButton リセットButton;
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     public static void main(String[] args) {
 

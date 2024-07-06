@@ -3,7 +3,6 @@ package com.okayugroup.IotHome.event;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 
 public record EventResult<T>(@Nullable Exception exception, T result){
     @Contract(pure = true)

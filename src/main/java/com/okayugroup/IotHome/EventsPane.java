@@ -1,8 +1,8 @@
 package com.okayugroup.IotHome;
 
-import com.okayugroup.IotHome.event.temporary.CommandEvent;
 import com.okayugroup.IotHome.event.Event;
-import com.okayugroup.IotHome.event.temporary.FileExecutionEvent;
+import com.okayugroup.IotHome.event.EventController;
+import com.okayugroup.IotHome.event.LinkedEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,17 +10,21 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.GeneralPath;
+import java.util.List;
 
 public class EventsPane extends JPanel {
     public static final Color INPUT = new Color(134, 209, 246);
     public static final Color OUTPUT = new Color(255, 10, 10);
-    public static final Color TEMPORARY = new Color(85, 196, 89);
+    public static final Color TEMPORARY = new Color(215, 215, 215);
     public static final Color OPERATOR = new Color(233, 239, 71);
-    public static final Color GRAY1 = new Color(200, 200, 200);
+    public static final Color GRAY1 = new Color(171, 171, 171);
     private static final Color GRAY2 = new Color(120, 120, 120);
     private static final Font FONT = MainView.Font;
     private double startX = 0, startY = 0;
     private double translateX = 0, translateY = 0;
+    private LinkedEvent selectedNode;
+    private int selectedDirection;
+    private boolean draggable;
 
     public EventsPane() {
         super();
@@ -33,17 +37,127 @@ public class EventsPane extends JPanel {
             }
 
         });
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                selectedDirection = getNodesCursor(e);
+                draggable = selectedDirection == -1;
+                if (selectedNode != null) {
+                    EventController.getTree().events().remove(selectedNode);
+                    EventController.getTree().events().add(0, selectedNode);
+                    repaint();
+                }
+            }
+        });
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
                 super.mouseDragged(e);
-                translateX += e.getX() - startX;
-                translateY += e.getY() - startY;
+                if (draggable) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                    translateX += e.getX() - startX;
+                    translateY += e.getY() - startY;
+                    repaint();
+                } else {
+                    if (selectedDirection == 7 || selectedDirection == 0 || selectedDirection == 1) {
+                        double p = selectedNode.getHeight();
+                        double height = Math.max(20, selectedNode.getHeight() - (e.getY() - startY));
+                        selectedNode.setHeight(height);
+                        selectedNode.setY(selectedNode.getY() + (p - height));
+                    }
+                    if (1 <= selectedDirection && selectedDirection <= 3) {
+                        selectedNode.setWidth(Math.max(40, selectedNode.getWidth() + (e.getX() - startX)));
+                    }
+                    if (3 <= selectedDirection && selectedDirection <= 5) {
+                        selectedNode.setHeight(Math.max(20, selectedNode.getHeight() + (e.getY() - startY)));
+                    }
+                    if (5 <= selectedDirection && selectedDirection <= 7) {
+                        double p = selectedNode.getWidth();
+                        double width = Math.max(40, selectedNode.getWidth() - (e.getX() - startX));
+                        selectedNode.setWidth(width);
+                        selectedNode.setX(selectedNode.getX() + (p - width));
+
+                    }
+                    if (0 <= selectedDirection && selectedDirection <= 7) {
+                        repaint();
+                    }
+                    if (selectedDirection == 12) {
+                        selectedNode.setX(selectedNode.getX() + (e.getX() - startX));
+                        selectedNode.setY(selectedNode.getY() + (e.getY() - startY));
+                        repaint();
+                    }
+                }
                 startX = e.getX();
                 startY = e.getY();
-                repaint();
+            }
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                super.mouseMoved(e);
+                setCursor(switch (getNodesCursor(e)) {
+                    case 0 -> Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+                    case 2 -> Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+                    case 4 -> Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
+                    case 6 -> Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+                    case 1 -> Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+                    case 3 -> Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+                    case 5 -> Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+                    case 7 -> Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+                    default -> Cursor.getDefaultCursor();
+                });
             }
         });
+    }
+    public int getNodesCursor(MouseEvent e) {
+        for (LinkedEvent event : EventController.getTree().events()) {
+            double x = e.getX() - event.getX() - translateX;
+            double y = e.getY() - event.getY() - translateY;
+            if (0 <= y && y <= event.getHeight()) {
+                if (-5 <= x && x <= 0) {
+                    selectedNode = event;
+                    return 6;
+                }
+                if (event.getWidth() < x && x < event.getWidth() + 5) {
+                    selectedNode = event;
+                    return 2;
+                }
+            }
+            if (0 <= x && x <= event.getWidth()) {
+                if (-5 <= y && y <= 0) {
+                    selectedNode = event;
+                    return 0;
+                }
+                if (event.getHeight() < y && y < event.getHeight() + 5) {
+                    selectedNode = event;
+                    return 4;
+                }
+            }
+
+            if (-5 <= y && y <= 0 && event.getWidth() < x && x < event.getWidth() + 5) {
+                selectedNode = event;
+                return 1;
+            }
+            if (event.getHeight() < y && y < event.getHeight() + 5 && event.getWidth() < x && x < event.getWidth() + 5) {
+                selectedNode = event;
+                return 3;
+            }
+            if (event.getHeight() < y && y < event.getHeight() + 5 && -5 <= x && x <= 0) {
+                selectedNode = event;
+                return 5;
+            }
+            if (-5 <= y && y <= 0 && -5 <= x && x <= 0) {
+                selectedNode = event;
+                return 7;
+            }
+            if (0 <= x && x <= event.getWidth()) {
+                if (0 <= y && y <= 20) {
+                    selectedNode = event;
+                    return 12;
+                }
+            }
+        }
+        selectedNode = null;
+        return -1;
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -74,24 +188,32 @@ public class EventsPane extends JPanel {
         g2d.drawString("出力",  getWidth() / 8 + 7, 15);
 
         g2d.translate(translateX, translateY);
-        // ウィンドウを描画
-        drawWindow(g2d, 0, 80, 200,  120, new CommandEvent.PowershellCommand());
-        drawWindow(g2d, 10, 40, 280,  140, new FileExecutionEvent.ExecuteFile());
+        List<LinkedEvent> events = EventController.getTree().events();
+        for (int i = events.size() - 1; i >= 0; i--) {
+            LinkedEvent event = events.get(i);
+            // ウィンドウを描画
+            drawWindow(g2d, event);
+        }
+
 
     }
 
-    private static void drawWindow(Graphics2D g2d, double x, double y, double width, double height, Event<?> event) {
+    private static void drawWindow(Graphics2D g2d, LinkedEvent linkedEvent) {
+        double x = linkedEvent.getX(), y = linkedEvent.getY(), width = linkedEvent.getWidth(), height = linkedEvent.getHeight();
+        g2d.setFont(FONT.deriveFont(10f));
+        Event<?> event = linkedEvent.getEvent();
         GeneralPath path = new GeneralPath();
-        // パスを定義する
-        path.moveTo(x, y + 20);    // 開始点
+        // 背景部を描画
+        path.moveTo(x, y + 20);
         path.lineTo(x + width, y + 20);
         path.lineTo(x + width, y + height - 10);
-        path.quadTo(x + width, y + height, x + width - 10, y + height); // 二次ベジェ曲線
+        path.quadTo(x + width, y + height, x + width - 10, y + height);
         path.lineTo(x + 10, y + height);
         path.quadTo(x, y + height, x, y + height - 10);
-        path.closePath();       // パスを閉じる
+        path.closePath();
         g2d.setColor(Color.WHITE);
         g2d.fill(path);
+
 
         path.reset();
         path.moveTo(x + width, y + 20);
@@ -106,16 +228,16 @@ public class EventsPane extends JPanel {
         drawText(g2d, (float) (x + width * .5 + 10), (float) y + 15, width * .5 - 10, event.getChildName());
 
         path.reset();
-        path.moveTo(x + width * .5, y + 20);
-        path.lineTo(x + width * .5 + 10, y + 10);
-        path.lineTo(x + width * .5, y);
+        path.moveTo(x + width * .50, y + 20);
+        path.lineTo(x + width * .50 + 10, y + 10);
+        path.lineTo(x + width * .50, y);
         path.lineTo(x + width * .15, y);
         path.lineTo(x + width * .15, y + 20);
 
         g2d.setColor(GRAY1);
         g2d.fill(path);
 
-        drawText(g2d, (float) (x + width * .15 + 10), (float) y + 15, width * .45 - 10, event.getParentName());
+        drawText(g2d, (float) (x + width * .15 + 10), (float) y + 15, width * .35 - 10, event.getParentName());
 
         path.reset();
         path.moveTo(x + width * .15, y + 20);
@@ -125,14 +247,12 @@ public class EventsPane extends JPanel {
         path.quadTo(x, y, x, y + 10);
         path.lineTo(x, y + 20);
 
-
-
+        // 色をプリセットから指定
         g2d.setColor(switch(event.getTypeId()) {
             case INPUT -> INPUT;
             case OUTPUT -> OUTPUT;
             case TEMPORARY -> TEMPORARY;
             case OPERATOR -> OPERATOR;
-            default -> Color.WHITE;
         });
         g2d.fill(path);
 
@@ -141,8 +261,20 @@ public class EventsPane extends JPanel {
             case OUTPUT -> "出力";
             case TEMPORARY -> "中間";
             case OPERATOR -> "演算";
-            default -> "不明";
         });
+
+        // 引数を表示
+        g2d.setColor(Color.BLACK);
+        String[] argDesc = event.getTemplate().getArgDescriptions();
+        String[] args = event.getArgs();
+        for (int i = 0; i < argDesc.length; i++) {
+            if (45 + 30 * i > height) break;
+            g2d.setFont(g2d.getFont().deriveFont(Font.BOLD, 10));
+            drawText(g2d, (float) (x + 5), (float) (y + 35 + 30 * i), width - 10, argDesc[i]);
+            g2d.setFont(g2d.getFont().deriveFont(Font.PLAIN, 8));
+            drawText(g2d, (float) (x + 5), (float) (y + 46 + 30 * i), width - 10, i > args.length - 1 ? "" : args[i]);
+
+        }
     }
 
     private static void drawText(Graphics2D g2d, float x, float y, double width, String text) {
@@ -156,7 +288,7 @@ public class EventsPane extends JPanel {
         if (bounds <= width) {
             return text;
         }
-        for (int i = text.length() - 2; i >= 0; i--) {
+        for (int i = text.length() - 1; i >= 0; i--) {
             String result = text.substring(0, i);
             if (font.stringWidth(result) + bTextWidth <= width) {
                 return result + "...";

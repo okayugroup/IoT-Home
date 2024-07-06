@@ -22,6 +22,7 @@ import com.okayugroup.IotHome.event.EventResult;
 import com.okayugroup.IotHome.event.TemporaryEvent;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
@@ -40,7 +41,7 @@ public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
     }
 
     @Override
-    public String[] getArgs() {
+    public @NotNull String @NotNull [] getArgs() {
         return directory == null ? new String[]{filePath} : new String[]{filePath, directory};
     }
     public static class ExecuteFile extends FileExecutionEvent {
@@ -58,7 +59,7 @@ public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
             try {
                 // ProcessBuilderを使用してコマンドを設定
                 ProcessBuilder builder = new ProcessBuilder(filePath);
-                if (directory != null) builder.directory(new java.io.File(directory)); // 実行するディレクトリを設定（オプション）
+                if (directory != null && !directory.isEmpty()) builder.directory(new java.io.File(directory)); // 実行するディレクトリを設定（オプション）
 
                 // プロセスを開始
                 Process process = builder.start();

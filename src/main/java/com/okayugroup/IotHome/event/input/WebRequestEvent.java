@@ -2,6 +2,7 @@ package com.okayugroup.IotHome.event.input;
 
 import com.okayugroup.IotHome.event.EventResult;
 import com.okayugroup.IotHome.event.InputEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class WebRequestEvent<T> extends InputEvent<T> {
@@ -10,7 +11,7 @@ public abstract class WebRequestEvent<T> extends InputEvent<T> {
     }
     protected String category, field;
     @Override
-    public String[] getArgs() {
+    public @NotNull String @NotNull [] getArgs() {
         return new String[]{category, field};
     }
 
