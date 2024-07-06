@@ -3,6 +3,7 @@ package com.okayugroup.IotHome;
 import com.okayugroup.IotHome.event.Event;
 import com.okayugroup.IotHome.event.EventController;
 import com.okayugroup.IotHome.event.LinkedEvent;
+import com.okayugroup.IotHome.event.UserEventsObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,6 +26,7 @@ public class EventsPane extends JPanel {
     private LinkedEvent selectedNode;
     private int selectedDirection;
     private boolean draggable;
+    private UserEventsObject userEventsObject;
 
     public EventsPane() {
         super();
@@ -44,8 +46,8 @@ public class EventsPane extends JPanel {
                 selectedDirection = getNodesCursor(e);
                 draggable = selectedDirection == -1;
                 if (selectedNode != null) {
-                    EventController.getTree().events().remove(selectedNode);
-                    EventController.getTree().events().add(0, selectedNode);
+                    userEventsObject.events().remove(selectedNode);
+                    userEventsObject.events().add(0, selectedNode);
                     repaint();
                 }
             }
@@ -109,7 +111,7 @@ public class EventsPane extends JPanel {
         });
     }
     public int getNodesCursor(MouseEvent e) {
-        for (LinkedEvent event : EventController.getTree().events()) {
+        for (LinkedEvent event : userEventsObject.events()) {
             double x = e.getX() - event.getX() - translateX;
             double y = e.getY() - event.getY() - translateY;
             if (0 <= y && y <= event.getHeight()) {
@@ -188,7 +190,7 @@ public class EventsPane extends JPanel {
         g2d.drawString("出力",  getWidth() / 8 + 7, 15);
 
         g2d.translate(translateX, translateY);
-        List<LinkedEvent> events = EventController.getTree().events();
+        List<LinkedEvent> events = userEventsObject.events();
         for (int i = events.size() - 1; i >= 0; i--) {
             LinkedEvent event = events.get(i);
             // ウィンドウを描画
@@ -295,5 +297,13 @@ public class EventsPane extends JPanel {
             }
         }
         return "...";
+    }
+
+    public UserEventsObject getUserEventsObject() {
+        return userEventsObject;
+    }
+
+    public void setUserEventsObject(UserEventsObject userEventsObject) {
+        this.userEventsObject = userEventsObject;
     }
 }

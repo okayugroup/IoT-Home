@@ -1,51 +1,142 @@
 package com.okayugroup.IotHome.event.input;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.okayugroup.IotHome.event.EventResult;
 import com.okayugroup.IotHome.event.InputEvent;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 public abstract class WebRequestEvent<T> extends InputEvent<T> {
     protected WebRequestEvent(String name, String... args) {
         super("HTTPリクエスト", name, args);
     }
-    protected String category, field;
+    protected String url;
+    protected int timeout;
+    protected Map<String, String> headers;
+    protected final ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public @NotNull String @NotNull [] getArgs() {
-        return new String[]{category, field};
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public String getField() {
-        return field;
+        try {
+            return new String[]{url, Long.toString(timeout), objectMapper.writeValueAsString(headers)};
+        } catch (JsonProcessingException e) {
+            return new String[]{url, Long.toString(timeout), "{}"};
+        }
     }
 
     @Override
     public WebRequestEvent<T> setArgs(String... args) {
-        category = args[0];
-        field = args[1];
+        url = args.length > 0 ? args[0] : null;
+        timeout = args.length > 1 ? Integer.parseInt(args[1]) : 300;
+        try {
+            headers = args.length > 2 ? objectMapper.readValue(args[2], new TypeReference<>(){}) : Map.of();
+        } catch (JsonProcessingException e) {
+            headers = Map.of();
+        }
         return this;
     }
 
 
     @Override
     public abstract WebRequestEvent<T> getCopy();
-    public static class GetRequest extends WebRequestEvent<Boolean> {
-        protected GetRequest() {
-            super("GETリクエスト");
+    public static class GetRequest extends WebRequestEvent<String> {
+        public GetRequest(String... args) {
+            super("GETリクエスト", args);
         }
 
         @Override
-        public EventResult<Boolean> execute(@Nullable EventResult<?> previousResult) {
-            return new EventResult<>(null, true);
+        public EventResult<String> execute(@Nullable EventResult<?> previousResult) {
+            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                HttpGet request = new HttpGet(url);
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    request.addHeader(entry.getKey(), entry.getValue());
+                }
+                request.setConfig(RequestConfig.copy(RequestConfig.DEFAULT).setConnectionRequestTimeout(timeout).build());
+                HttpResponse response = httpClient.execute(request);
+                int responseCode = response.getStatusLine().getStatusCode();
+                System.out.println("Response Code: " + responseCode);
+                HttpEntity entity = response.getEntity();
+
+                if (entity != null) {
+                    // レスポンスの内容を文字列として取得
+                    String result = EntityUtils.toString(entity);
+                    return new EventResult<>(null, result);
+                } else {
+                    return new EventResult<>(null, null);
+                }
+            } catch (Exception e) {
+                return new EventResult<>(e, null);
+            }
         }
 
         @Override
-        public WebRequestEvent<Boolean> getCopy() {
+        public GetRequest getCopy() {
             return new GetRequest();
+        }
+    }
+    public static class PostRequest extends WebRequestEvent<String> {
+        public PostRequest(String... args) {
+            super("POSTリクエスト", args);
+        }
+        protected String content;
+
+        @Override
+        public WebRequestEvent<String> setArgs(String... args) {
+            super.setArgs(args);
+            content = args.length > 3 ? args[3] : "";
+            return this;
+        }
+
+        @Override
+        public @NotNull String @NotNull [] getArgs() {
+            try {
+                return new String[]{url, Long.toString(timeout), objectMapper.writeValueAsString(headers), content};
+            } catch (JsonProcessingException e) {
+                return new String[]{url, Long.toString(timeout), "{}", content};
+            }
+        }
+
+        @Override
+        public EventResult<String> execute(EventResult<?> previousResult) {
+            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                HttpPost request = new HttpPost(url);
+                request.setEntity(new StringEntity(content));
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    request.addHeader(entry.getKey(), entry.getValue());
+                }
+                request.setConfig(RequestConfig.copy(RequestConfig.DEFAULT).setConnectionRequestTimeout(timeout).build());
+                HttpResponse response = httpClient.execute(request);
+                int responseCode = response.getStatusLine().getStatusCode();
+                System.out.println("Response Code: " + responseCode);
+                HttpEntity entity = response.getEntity();
+
+                if (entity != null) {
+                    // レスポンスの内容を文字列として取得
+                    String result = EntityUtils.toString(entity);
+                    return new EventResult<>(null, result);
+                } else {
+                    return new EventResult<>(null, null);
+                }
+            } catch (Exception e) {
+                return new EventResult<>(e, null);
+            }
+        }
+
+        @Override
+        public PostRequest getCopy() {
+            return new PostRequest();
         }
     }
 }

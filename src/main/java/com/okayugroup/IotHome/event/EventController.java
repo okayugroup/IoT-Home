@@ -1,6 +1,7 @@
 package com.okayugroup.IotHome.event;
 
 import com.okayugroup.IotHome.LogController;
+import com.okayugroup.IotHome.event.input.WebRequestEvent;
 import com.okayugroup.IotHome.event.temporary.CommandEvent;
 import com.okayugroup.IotHome.event.temporary.FileExecutionEvent;
 import jakarta.annotation.Nullable;
@@ -21,6 +22,8 @@ public class EventController {
         add(events, new CommandEvent.PowershellCommand(), "実行するPowerShellコマンド");
         add(events, new FileExecutionEvent.ExecuteFile(), "実行するファイル", "実行元のディレクトリ");
         add(events, new FileExecutionEvent.PlaySound(), "再生する音声ファイル (*.wav,*.mp3)");
+        add(events, new WebRequestEvent.GetRequest(), "GETするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)");
+        add(events, new WebRequestEvent.PostRequest(), "POSTするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)", "送信するコンテンツ");
         return Map.copyOf(events);
     }
     public static TemplatedEvent getTemplate(Event<?> event) {

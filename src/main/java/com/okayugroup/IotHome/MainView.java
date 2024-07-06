@@ -14,6 +14,8 @@
 
 package com.okayugroup.IotHome;
 
+import com.okayugroup.IotHome.event.EventController;
+
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
@@ -28,8 +30,8 @@ public class MainView {
     private JCheckBox useHtmlSettings;
     public static Font Font = loadFont();
     private JPanel eventsPane;
-    private JButton 保存Button;
-    private JButton リセットButton;
+    private JButton saveNodesButton;
+    private JButton resetNodesButton;
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     public static void main(String[] args) {
 
@@ -84,7 +86,7 @@ public class MainView {
 
     private void createUIComponents() {
         eventsPane = new EventsPane();
-
+        ((EventsPane)eventsPane).setUserEventsObject(EventController.getTree());
     }
     private void initComponents() {
         useHtmlSettings.addActionListener(e->LogController.LOGGER.log("この機能はまだ実装されていません"));

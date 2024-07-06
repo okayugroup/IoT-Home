@@ -7,7 +7,7 @@ import java.util.List;
 
 public class LinkedEvent {
     private final Event<?> event;
-    private List<LinkedEvent> events = new ArrayList<>();
+    private final List<LinkedEvent> events = new ArrayList<>();
     private double x;
     private double y;
     private double width;
