@@ -30,7 +30,7 @@ public class LinkedEvent {
     private double y;
     private double width;
     private double height;
-    private int maxConnections;
+    private int maxConnections = 1;
 
     public LinkedEvent(Event<?> event, double x, double y, double width, double height, LinkedEvent... events) {
         this.event = event;

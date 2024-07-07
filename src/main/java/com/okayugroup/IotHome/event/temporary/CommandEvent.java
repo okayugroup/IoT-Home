@@ -80,6 +80,10 @@ public abstract class CommandEvent extends TemporaryEvent<List<String>> {
     @Override
     public abstract CommandEvent getCopy();
 
+    @Override
+    public String getReturns() {
+        return "コマンド実行結果\nリスト[文字列]";
+    }
     public static class ConsoleCommand extends CommandEvent {
         public ConsoleCommand(String... args) {
             super("コンソール コマンド", args);

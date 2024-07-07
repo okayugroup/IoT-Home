@@ -115,6 +115,7 @@ public class EventsPane extends JPanel {
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
                 extracted(e);
+                if (100 <= selectedDirection) repaint();
             }
         });
     }
@@ -131,6 +132,9 @@ public class EventsPane extends JPanel {
             case 7 -> Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
             default -> Cursor.getDefaultCursor();
         });
+        if (100 <= selectedDirection) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
     }
 
     public int getSelectedNode(MouseEvent e) {
@@ -146,36 +150,46 @@ public class EventsPane extends JPanel {
         for (LinkedEvent event : userEventsObject.events()) {
             double x = e.getX() - event.getX() - translateX;
             double y = e.getY() - event.getY() - translateY;
-            if (0 <= y && y <= event.getHeight()) {
+            double height = event.getHeight();
+            double width = event.getWidth();
+            for (int i = 0; i < event.getMaxConnections(); i++) {
+                double v = (20 + (height - 20) / (event.getMaxConnections() + 1) * (i + 1)) - y;
+                if (Math.sqrt((width - x) * (width - x) + v * v) < 4) {
+                    selectedNode = event;
+                    return 100 + i;
+                }
+            }
+
+            if (0 <= y && y <= height) {
                 if (-5 <= x && x <= 0) {
                     selectedNode = event;
                     return 6;
                 }
-                if (event.getWidth() < x && x < event.getWidth() + 5) {
+                if (width < x && x < width + 5) {
                     selectedNode = event;
                     return 2;
                 }
             }
-            if (0 <= x && x <= event.getWidth()) {
+            if (0 <= x && x <= width) {
                 if (-5 <= y && y <= 0) {
                     selectedNode = event;
                     return 0;
                 }
-                if (event.getHeight() < y && y < event.getHeight() + 5) {
+                if (height < y && y < height + 5) {
                     selectedNode = event;
                     return 4;
                 }
             }
 
-            if (-5 <= y && y <= 0 && event.getWidth() < x && x < event.getWidth() + 5) {
+            if (-5 <= y && y <= 0 && width < x && x < width + 5) {
                 selectedNode = event;
                 return 1;
             }
-            if (event.getHeight() < y && y < event.getHeight() + 5 && event.getWidth() < x && x < event.getWidth() + 5) {
+            if (height < y && y < height + 5 && width < x && x < width + 5) {
                 selectedNode = event;
                 return 3;
             }
-            if (event.getHeight() < y && y < event.getHeight() + 5 && -5 <= x && x <= 0) {
+            if (height < y && y < height + 5 && -5 <= x && x <= 0) {
                 selectedNode = event;
                 return 5;
             }
@@ -183,7 +197,7 @@ public class EventsPane extends JPanel {
                 selectedNode = event;
                 return 7;
             }
-            if (0 <= x && x <= event.getWidth()) {
+            if (0 <= x && x <= width) {
                 if (0 <= y && y <= 20) {
                     selectedNode = event;
                     return 12;
@@ -233,7 +247,10 @@ public class EventsPane extends JPanel {
         g2d.setColor(Color.BLACK);
         g2d.drawString("出力",  getWidth() / 6 + 6, 15);
 
-
+        if (100 <= selectedDirection) {
+            g2d.setColor(INPUT);
+            g2d.drawString(selectedNode.getEvent().getReturns(), (float) (selectedNode.getX() + translateX + selectedNode.getWidth() + 4), (float) (selectedNode.getY() + translateY + 18 + (selectedNode.getHeight() - 20) / (selectedNode.getMaxConnections() + 1) * (selectedDirection - 100 + 1)));
+        }
 
     }
 
@@ -302,6 +319,15 @@ public class EventsPane extends JPanel {
             case OPERATOR -> "演算";
         });
 
+        int maxConnections = linkedEvent.getMaxConnections();
+        for (int i = 0; i < maxConnections; i++) {
+            double v = y + 20 + (height - 20) / (maxConnections + 1) * (i + 1);
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval((int) (x + width - 4), (int) v - 4, 8, 8);
+            g2d.setColor(Color.CYAN);
+            g2d.fillOval((int) (x + width - 2), (int) v - 2, 4, 4);
+        }
+
         // 引数を表示
         g2d.setColor(Color.BLACK);
         String[] argDesc = event.getTemplate().getArgDescriptions();
@@ -312,8 +338,9 @@ public class EventsPane extends JPanel {
             drawText(g2d, (float) (x + 5), (float) (y + 35 + 30 * i), width - 10, argDesc[i]);
             g2d.setFont(g2d.getFont().deriveFont(Font.PLAIN, 8));
             drawText(g2d, (float) (x + 5), (float) (y + 46 + 30 * i), width - 10, i > args.length - 1 ? "" : args[i]);
-
         }
+
+
     }
 
     private static void drawText(Graphics2D g2d, float x, float y, double width, String text) {

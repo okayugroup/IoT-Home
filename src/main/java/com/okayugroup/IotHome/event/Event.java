@@ -54,6 +54,7 @@ public abstract class Event<T> {
         return name + " - " + child;
     }
 
+
     /**
      * @param previousResult The result of the previous event
      * @return The result of this event's execution
@@ -78,6 +79,7 @@ public abstract class Event<T> {
     public void setSizeChangedListener(SizeChangeListener listener) {
         this.listener = listener;
     }
+    public abstract String getReturns();
     public void removeSizeChangedListener() {
         listener = null;
     }

@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public abstract class WebRequestEvent<T> extends TemporaryEvent<T> {
+public abstract class WebRequestEvent extends TemporaryEvent<String> {
     protected WebRequestEvent(String name, String... args) {
         super("HTTPリクエスト", name, args);
     }
@@ -59,7 +59,7 @@ public abstract class WebRequestEvent<T> extends TemporaryEvent<T> {
 
     }
     @Override
-    public WebRequestEvent<T> setArgs(String... args) {
+    public WebRequestEvent setArgs(String... args) {
         url = args.length > 0 ? args[0] : null;
         timeout = args.length > 1 ? Integer.parseInt(args[1]) : 300;
         try {
@@ -70,15 +70,17 @@ public abstract class WebRequestEvent<T> extends TemporaryEvent<T> {
         content = args.length > 3 ? args[3] : null;
         return this;
     }
-
+    @Override
+    public String getReturns() {
+        return "リクエスト実行結果\n文字列";
+    }
 
     @Override
-    public abstract WebRequestEvent<T> getCopy();
-    public static class GetRequest extends WebRequestEvent<String> {
+    public abstract WebRequestEvent getCopy();
+    public static class GetRequest extends WebRequestEvent {
         public GetRequest(String... args) {
             super("GETリクエスト", args);
         }
-
         @Override
         public EventResult<String> execute(@Nullable EventResult<?> previousResult) {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -109,7 +111,7 @@ public abstract class WebRequestEvent<T> extends TemporaryEvent<T> {
             return new GetRequest();
         }
     }
-    public static class PostRequest extends WebRequestEvent<String> {
+    public static class PostRequest extends WebRequestEvent {
         public PostRequest(String... args) {
             super("POSTリクエスト", args);
         }

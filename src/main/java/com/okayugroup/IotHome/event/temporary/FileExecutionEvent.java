@@ -50,6 +50,10 @@ public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
     public @NotNull String @NotNull [] getArgs() {
         return directory == null ? new String[]{filePath} : new String[]{filePath, directory};
     }
+    @Override
+    public String getReturns() {
+        return "ファイル実行結果\nリスト[文字列]";
+    }
     public static class ExecuteFile extends FileExecutionEvent {
         public ExecuteFile(String... args) {
             super("ファイルを実行", args);
@@ -106,7 +110,10 @@ public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
                 return new EventResult<>(e, List.of());
             }
         }
-
+        @Override
+        public String getReturns() {
+            return "ファイル実行結果\nリスト[文字列](空)";
+        }
         @Override
         public FileExecutionEvent getCopy() {
             return new PlaySound(getArgs());

@@ -31,7 +31,10 @@ public class RequestEvent extends InputEvent<Boolean> {
     }
 
     public String category, field;
-
+    @Override
+    public String getReturns() {
+        return "常にTrue";
+    }
     @Override
     public @NotNull String[] getArgs() {
         return new String[]{category, field};
