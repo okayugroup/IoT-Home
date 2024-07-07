@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.okayugroup.IotHome.event.temporary;
 
 import java.io.*;
@@ -35,7 +36,7 @@ public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
     public abstract FileExecutionEvent getCopy();
     @Override
     public FileExecutionEvent setArgs(String... args) {
-        filePath = args.length > 0 ? args[0] : null;
+        filePath = args.length > 0 ? args[0] : "";
         directory = args.length > 1 ? args[1] : null;
         return this;
     }

@@ -1,9 +1,9 @@
 package com.okayugroup.IotHome;
 
 import com.okayugroup.IotHome.event.Event;
-import com.okayugroup.IotHome.event.EventController;
 import com.okayugroup.IotHome.event.LinkedEvent;
 import com.okayugroup.IotHome.event.UserEventsObject;
+import com.okayugroup.IotHome.event.input.RequestEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,20 +36,19 @@ public class EventsPane extends JPanel {
                 super.mousePressed(e);
                 startX = e.getX();
                 startY = e.getY();
-            }
-
-        });
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                super.mousePressed(e);
-                selectedDirection = getNodesCursor(e);
+                selectedDirection = getSelectedNode(e);
                 draggable = selectedDirection == -1;
                 if (selectedNode != null) {
                     userEventsObject.events().remove(selectedNode);
                     userEventsObject.events().add(0, selectedNode);
                     repaint();
                 }
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+                selectedDirection = getSelectedNode(e);
+                extracted(e);
             }
         });
         addMouseMotionListener(new MouseMotionAdapter() {
@@ -96,21 +95,35 @@ public class EventsPane extends JPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                setCursor(switch (getNodesCursor(e)) {
-                    case 0 -> Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
-                    case 2 -> Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
-                    case 4 -> Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
-                    case 6 -> Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
-                    case 1 -> Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
-                    case 3 -> Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
-                    case 5 -> Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
-                    case 7 -> Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
-                    default -> Cursor.getDefaultCursor();
-                });
+                extracted(e);
             }
         });
     }
-    public int getNodesCursor(MouseEvent e) {
+
+    private void extracted(MouseEvent e) {
+        setCursor(switch (selectedDirection = getSelectedNode(e)) {
+            case 0 -> Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+            case 2 -> Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+            case 4 -> Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
+            case 6 -> Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+            case 1 -> Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+            case 3 -> Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+            case 5 -> Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+            case 7 -> Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+            default -> Cursor.getDefaultCursor();
+        });
+    }
+
+    public int getSelectedNode(MouseEvent e) {
+        if (e.getY() < 24) {
+            if (e.getX() < getWidth() / 6) {
+                selectedNode = new LinkedEvent(new RequestEvent(), -translateX, -translateY, 200, 100);
+                return 12;
+            }
+            selectedNode = null;
+            return 16;
+        }
+
         for (LinkedEvent event : userEventsObject.events()) {
             double x = e.getX() - event.getX() - translateX;
             double y = e.getY() - event.getY() - translateY;
@@ -157,6 +170,7 @@ public class EventsPane extends JPanel {
                     return 12;
                 }
             }
+
         }
         selectedNode = null;
         return -1;
@@ -170,25 +184,8 @@ public class EventsPane extends JPanel {
         // 背景を塗りつぶす
         g2d.setColor(Color.BLACK);
         g2d.fillRect(0, 0, getWidth(), getHeight());
-
-
         // アンチエイリアスを有効にする
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setFont(FONT.deriveFont(9f));
-
-        // 入力ボタン
-        g2d.setColor(INPUT);
-        g2d.fillRect(0, 0, getWidth() / 8, 20);
-        g2d.setColor(Color.BLACK);
-
-        g2d.drawString("入力",  7, 15);
-
-        // 出力ボタン
-        g2d.setColor(OUTPUT);
-        g2d.fillRect(getWidth() / 8, 0, getWidth() / 8, 20);
-        g2d.setColor(Color.BLACK);
-        g2d.drawString("出力",  getWidth() / 8 + 7, 15);
-
         g2d.translate(translateX, translateY);
         List<LinkedEvent> events = userEventsObject.events();
         for (int i = events.size() - 1; i >= 0; i--) {
@@ -196,6 +193,27 @@ public class EventsPane extends JPanel {
             // ウィンドウを描画
             drawWindow(g2d, event);
         }
+        g2d.translate(-translateX, -translateY);
+
+        // アンチエイリアスを有効にする
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setFont(FONT.deriveFont(9f));
+
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, getWidth(), 24);
+        // 入力ボタン
+        g2d.setColor(INPUT);
+        g2d.fillRect(2, 2, getWidth() / 6 - 2, 20);
+        g2d.setColor(Color.BLACK);
+
+        g2d.drawString("入力",  6, 15);
+
+        // 出力ボタン
+        g2d.setColor(OUTPUT);
+        g2d.fillRect(getWidth() / 6 + 2, 2, getWidth() / 6 - 2, 20);
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("出力",  getWidth() / 6 + 6, 15);
+
 
 
     }
@@ -297,10 +315,6 @@ public class EventsPane extends JPanel {
             }
         }
         return "...";
-    }
-
-    public UserEventsObject getUserEventsObject() {
-        return userEventsObject;
     }
 
     public void setUserEventsObject(UserEventsObject userEventsObject) {

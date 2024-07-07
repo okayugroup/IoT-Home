@@ -1,10 +1,10 @@
-package com.okayugroup.IotHome.event.input;
+package com.okayugroup.IotHome.event.temporary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.okayugroup.IotHome.event.EventResult;
-import com.okayugroup.IotHome.event.InputEvent;
+import com.okayugroup.IotHome.event.TemporaryEvent;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public abstract class WebRequestEvent<T> extends InputEvent<T> {
+public abstract class WebRequestEvent<T> extends TemporaryEvent<T> {
     protected WebRequestEvent(String name, String... args) {
         super("HTTPリクエスト", name, args);
     }
@@ -27,15 +27,18 @@ public abstract class WebRequestEvent<T> extends InputEvent<T> {
     protected int timeout;
     protected Map<String, String> headers;
     protected final ObjectMapper objectMapper = new ObjectMapper();
+    protected String content;
+
+
     @Override
     public @NotNull String @NotNull [] getArgs() {
+        String value = "{}";
         try {
-            return new String[]{url, Long.toString(timeout), objectMapper.writeValueAsString(headers)};
-        } catch (JsonProcessingException e) {
-            return new String[]{url, Long.toString(timeout), "{}"};
-        }
-    }
+            value = objectMapper.writeValueAsString(headers);
+        } catch (JsonProcessingException ignored) { }
+        return new String[]{url, Long.toString(timeout), value, content};
 
+    }
     @Override
     public WebRequestEvent<T> setArgs(String... args) {
         url = args.length > 0 ? args[0] : null;
@@ -45,6 +48,7 @@ public abstract class WebRequestEvent<T> extends InputEvent<T> {
         } catch (JsonProcessingException e) {
             headers = Map.of();
         }
+        content = args.length > 3 ? args[3] : null;
         return this;
     }
 
@@ -89,23 +93,6 @@ public abstract class WebRequestEvent<T> extends InputEvent<T> {
     public static class PostRequest extends WebRequestEvent<String> {
         public PostRequest(String... args) {
             super("POSTリクエスト", args);
-        }
-        protected String content;
-
-        @Override
-        public WebRequestEvent<String> setArgs(String... args) {
-            super.setArgs(args);
-            content = args.length > 3 ? args[3] : "";
-            return this;
-        }
-
-        @Override
-        public @NotNull String @NotNull [] getArgs() {
-            try {
-                return new String[]{url, Long.toString(timeout), objectMapper.writeValueAsString(headers), content};
-            } catch (JsonProcessingException e) {
-                return new String[]{url, Long.toString(timeout), "{}", content};
-            }
         }
 
         @Override

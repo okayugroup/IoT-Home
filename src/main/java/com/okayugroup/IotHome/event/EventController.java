@@ -1,7 +1,7 @@
 package com.okayugroup.IotHome.event;
 
-import com.okayugroup.IotHome.LogController;
-import com.okayugroup.IotHome.event.input.WebRequestEvent;
+import com.okayugroup.IotHome.event.input.RequestEvent;
+import com.okayugroup.IotHome.event.temporary.WebRequestEvent;
 import com.okayugroup.IotHome.event.temporary.CommandEvent;
 import com.okayugroup.IotHome.event.temporary.FileExecutionEvent;
 import jakarta.annotation.Nullable;
@@ -17,13 +17,16 @@ public class EventController {
 
     private static @NotNull Map<String, TemplatedEvent> initEvents() {
         Map<String, TemplatedEvent> events = new LinkedHashMap<>();
-        add(events, new CommandEvent.ConsoleCommand(), "実行するコマンド");
-        add(events, new CommandEvent.CmdPromptCommand(), "実行するWindowsコマンド");
+        add(events, new CommandEvent.ConsoleCommand(),
+                "実行するコマンド");
+        add(events, new CommandEvent.CmdPromptCommand(),  "実行するWindowsコマンド");
         add(events, new CommandEvent.PowershellCommand(), "実行するPowerShellコマンド");
         add(events, new FileExecutionEvent.ExecuteFile(), "実行するファイル", "実行元のディレクトリ");
-        add(events, new FileExecutionEvent.PlaySound(), "再生する音声ファイル (*.wav,*.mp3)");
-        add(events, new WebRequestEvent.GetRequest(), "GETするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)");
-        add(events, new WebRequestEvent.PostRequest(), "POSTするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)", "送信するコンテンツ");
+        add(events, new FileExecutionEvent.PlaySound(),   "再生する音声ファイル (*.wav,*.mp3)");
+        add(events, new WebRequestEvent.GetRequest(),     "GETするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)");
+        add(events, new WebRequestEvent.PostRequest(),    "POSTするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)", "送信するコンテンツ");
+        add(events, new RequestEvent(),                   "エンドポイント子名", "エンドポイント親名");
+
         return Map.copyOf(events);
     }
     public static TemplatedEvent getTemplate(Event<?> event) {
@@ -35,26 +38,27 @@ public class EventController {
 
     public static UserEventsObject getTree() {
         if (tree == null) {
-            try {
-                tree = UserEventsObject.fromFile();
-            } catch (Exception e) {
-                System.err.println("ファイルの読み込み中にエラーが発生しました。");
-                e.printStackTrace(System.out);
-                File file = new File("inputs.json");
-                try {
-                    boolean ignored = file.createNewFile();
-                    tree = new UserEventsObject(new HashMap<>(), new ArrayList<>());
-                    tree.saveToFile();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+            resetTree();
 
-            }
-            tree.events().add(new LinkedEvent(new CommandEvent.CmdPromptCommand("dir"), 0, 50, 200, 100));
-            tree.events().add(new LinkedEvent(new FileExecutionEvent.PlaySound("C:\\Users\\yaido\\Music\\ミンミンゼミが鳴く雑木林.mp3"), 100, 70, 200, 100));
-            tree.events().add(new LinkedEvent(new FileExecutionEvent.ExecuteFile("notepad.exe"), 120, 90, 250, 120));
         }
         return tree;
+    }
+    public static void resetTree() {
+        try {
+            tree = UserEventsObject.fromFile();
+        } catch (Exception e) {
+            System.err.println("ファイルの読み込み中にエラーが発生しました。");
+            e.printStackTrace(System.out);
+            File file = new File("inputs.json");
+            try {
+                boolean ignored = file.createNewFile();
+                tree = new UserEventsObject(new HashMap<>(), new ArrayList<>());
+                tree.saveToFile();
+
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     @Nullable
@@ -120,13 +124,4 @@ public class EventController {
     public static void putNewEvent(String root, String name) {
         getTree().inputs().get(root).put(name, new ArrayList<>());
     }*/
-
-    public static void saveTree() {
-        try {
-            getTree().saveToFile();
-        } catch (IOException e) {
-            LogController.LOGGER.log(LogController.LogLevel.ERROR, "ファイルの書き込み中にエラーが発生しました。");
-            e.printStackTrace(System.out);
-        }
-    }
 }

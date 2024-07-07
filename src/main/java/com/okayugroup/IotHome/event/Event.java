@@ -15,6 +15,7 @@ public abstract class Event<T> {
     protected final String name;
     protected final String child;
     protected final EventType type;
+    private SizeChangeListener listener;
     public String getParentName() {
         return name;
     }
@@ -52,5 +53,24 @@ public abstract class Event<T> {
 
     public String getTypicalName() {
         return getClass().getSimpleName();
+    }
+
+    public void setSizeChangedListener(SizeChangeListener listener) {
+        this.listener = listener;
+    }
+    public void removeSizeChangedListener() {
+        listener = null;
+    }
+
+    public SizeChangeListener getSizeChangedListener() {
+        return listener;
+    }
+
+    private void onSizeChanged(int a) {
+        listener.updated(a);
+    }
+
+    public interface SizeChangeListener {
+        void updated(int maxConnections);
     }
 }

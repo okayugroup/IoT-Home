@@ -75,13 +75,18 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
             }
             eventNode.set("links", links);
             ObjectNode value = objectMapper.createObjectNode();
-            value.put("type", event.getEvent().getClass().getTypeName());
+            value.put("type", event.getEvent().getTypicalName());
             ArrayNode args = objectMapper.createArrayNode();
             for (String arg : event.getEvent().getArgs()) {
                 args.add(arg);
             }
             value.set("args", args);
-            values.add(value);
+            eventNode.set("event", value);
+            eventNode.put("x", event.getX());
+            eventNode.put("y", event.getY());
+            eventNode.put("width", event.getWidth());
+            eventNode.put("height", event.getHeight());
+            values.add(eventNode);
         }
         root.set("events", values);
         objectMapper.writeValue(new File("inputs.json"), root);

@@ -90,5 +90,15 @@ public class MainView {
     }
     private void initComponents() {
         useHtmlSettings.addActionListener(e->LogController.LOGGER.log("この機能はまだ実装されていません"));
+        saveNodesButton.addActionListener(e-> {
+            try {
+                EventController.getTree().saveToFile();
+                LogController.LOGGER.log("正常に保存が完了したと思います");
+            } catch (IOException ex) {
+                LogController.LOGGER.log(LogController.LogLevel.ERROR, "保存できませんでした");
+                LogController.LOGGER.log(ex.getMessage());
+            }
+        });
+        resetNodesButton.addActionListener( e -> EventController.resetTree());
     }
 }
