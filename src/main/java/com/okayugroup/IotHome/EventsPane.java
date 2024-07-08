@@ -44,7 +44,8 @@ public class EventsPane extends JPanel {
     private double translateX = 0, translateY = 0;
     private LinkedEvent selectedNode;
     private int selectedDirection;
-    private boolean draggable;
+    private boolean scrollable;
+    private boolean dragging = false;
     private UserEventsObject userEventsObject;
 
     public EventsPane() {
@@ -56,25 +57,37 @@ public class EventsPane extends JPanel {
                 startX = e.getX();
                 startY = e.getY();
                 selectedDirection = getSelectedNode(e);
-                draggable = selectedDirection == -1;
+                scrollable = selectedDirection == -1;
+                dragging = true;
                 if (selectedNode != null) {
                     userEventsObject.events().remove(selectedNode);
                     userEventsObject.events().add(0, selectedNode);
                     repaint();
                 }
+
             }
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
+                LinkedEvent linkedEvent = null;
+                if (100 <= selectedDirection) {
+                    linkedEvent = selectedNode;
+                }
                 selectedDirection = getSelectedNode(e);
+                if (linkedEvent != null && selectedNode != null) {
+                    linkedEvent.getEvents().add(selectedNode);
+                }
                 extracted(e);
+                dragging = false;
+                scrollable = false;
+                repaint();
             }
         });
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
                 super.mouseDragged(e);
-                if (draggable) {
+                if (scrollable) {
                     setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                     translateX += e.getX() - startX;
                     translateY += e.getY() - startY;
@@ -110,6 +123,7 @@ public class EventsPane extends JPanel {
                 }
                 startX = e.getX();
                 startY = e.getY();
+                if (100 <= selectedDirection) repaint();
             }
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -202,6 +216,10 @@ public class EventsPane extends JPanel {
                     selectedNode = event;
                     return 12;
                 }
+                else if (0 <= y && y <= height) {
+                    selectedNode = event;
+                    return 13;
+                }
             }
 
         }
@@ -226,6 +244,7 @@ public class EventsPane extends JPanel {
             // ウィンドウを描画
             drawWindow(g2d, event);
         }
+
         g2d.translate(-translateX, -translateY);
 
         // アンチエイリアスを有効にする
@@ -247,9 +266,27 @@ public class EventsPane extends JPanel {
         g2d.setColor(Color.BLACK);
         g2d.drawString("出力",  getWidth() / 6 + 6, 15);
 
+
+        g2d.setColor(Color.ORANGE);
+        for (int i = events.size() - 1; i >= 0; i--) {
+            LinkedEvent event = events.get(i);
+            for (int j = 0; j < event.getMaxConnections(); j++) {
+                double v = translateY + event.getY() + 20 + (event.getHeight() - 20) / (event.getMaxConnections() + 1) * (j + 1);
+                if (j < event.getEvents().size()) {
+                    LinkedEvent linked = event.getEvents().get(j);
+                    g2d.drawLine((int) (translateX + event.getX() + event.getWidth()), ((int) v), (int) (translateX + linked.getX()), (int) (translateY + linked.getY() + 20 + (linked.getHeight() - 20) / 2));
+                }
+            }
+        }
+
+
         if (100 <= selectedDirection) {
             g2d.setColor(INPUT);
-            g2d.drawString(selectedNode.getEvent().getReturns(), (float) (selectedNode.getX() + translateX + selectedNode.getWidth() + 4), (float) (selectedNode.getY() + translateY + 18 + (selectedNode.getHeight() - 20) / (selectedNode.getMaxConnections() + 1) * (selectedDirection - 100 + 1)));
+            double y = selectedNode.getY() + translateY + 20 + (selectedNode.getHeight() - 20) / (selectedNode.getMaxConnections() + 1) * (selectedDirection - 100 + 1);
+            g2d.drawString(selectedNode.getEvent().getReturns(), (float) (selectedNode.getX() + translateX + selectedNode.getWidth() + 4), (float) (y - 2));
+            if (dragging) {
+                g2d.drawLine((int) (selectedNode.getX() + translateX + selectedNode.getWidth()), (int) y, (int) startX, (int) startY);
+            }
         }
 
     }
