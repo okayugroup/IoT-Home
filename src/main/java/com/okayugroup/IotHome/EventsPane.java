@@ -20,9 +20,9 @@
 package com.okayugroup.IotHome;
 
 import com.okayugroup.IotHome.event.Event;
+import com.okayugroup.IotHome.event.EventController;
 import com.okayugroup.IotHome.event.LinkedEvent;
 import com.okayugroup.IotHome.event.UserEventsObject;
-import com.okayugroup.IotHome.event.input.RequestEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +31,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.GeneralPath;
 import java.util.List;
+import java.util.Map;
 
 public class EventsPane extends JPanel {
     public static final Color INPUT = new Color(134, 209, 246);
@@ -70,7 +71,7 @@ public class EventsPane extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 LinkedEvent linkedEvent = null;
-                if (100 <= selectedDirection) {
+                if (100 <= selectedDirection && selectedDirection < 200) {
                     linkedEvent = selectedNode;
                 }
                 selectedDirection = getSelectedNode(e);
@@ -123,13 +124,13 @@ public class EventsPane extends JPanel {
                 }
                 startX = e.getX();
                 startY = e.getY();
-                if (100 <= selectedDirection) repaint();
+                if (100 <= selectedDirection && selectedDirection < 200) repaint();
             }
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
                 extracted(e);
-                if (100 <= selectedDirection) repaint();
+                if (100 <= selectedDirection && selectedDirection < 200) repaint();
             }
         });
     }
@@ -146,18 +147,20 @@ public class EventsPane extends JPanel {
             case 7 -> Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
             default -> Cursor.getDefaultCursor();
         });
-        if (100 <= selectedDirection) {
+        if (100 <= selectedDirection && selectedDirection < 200) {
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
     }
 
     public int getSelectedNode(MouseEvent e) {
         if (e.getY() < 24) {
-            if (e.getX() < getWidth() / 6) {
-                selectedNode = new LinkedEvent(new RequestEvent(), -translateX, -translateY, 200, 100);
-                return 12;
-            }
             selectedNode = null;
+            if (e.getX() < getWidth() / 6) {
+                return 200;
+            }
+            if (getWidth() / 6 < e.getX() && e.getX() <= getWidth() / 3) {
+                return 210;
+            }
             return 16;
         }
 
@@ -261,10 +264,10 @@ public class EventsPane extends JPanel {
         g2d.drawString("入力",  6, 15);
 
         // 出力ボタン
-        g2d.setColor(OUTPUT);
+        g2d.setColor(TEMPORARY);
         g2d.fillRect(getWidth() / 6 + 2, 2, getWidth() / 6 - 2, 20);
         g2d.setColor(Color.BLACK);
-        g2d.drawString("出力",  getWidth() / 6 + 6, 15);
+        g2d.drawString("中間",  getWidth() / 6 + 6, 15);
 
 
         g2d.setColor(Color.ORANGE);
@@ -279,8 +282,7 @@ public class EventsPane extends JPanel {
             }
         }
 
-
-        if (100 <= selectedDirection) {
+        if (100 <= selectedDirection && selectedDirection < 200) {
             g2d.setColor(INPUT);
             double y = selectedNode.getY() + translateY + 20 + (selectedNode.getHeight() - 20) / (selectedNode.getMaxConnections() + 1) * (selectedDirection - 100 + 1);
             g2d.drawString(selectedNode.getEvent().getReturns(), (float) (selectedNode.getX() + translateX + selectedNode.getWidth() + 4), (float) (y - 2));
@@ -289,6 +291,18 @@ public class EventsPane extends JPanel {
             }
         }
 
+        if (200 <= selectedDirection && selectedDirection < 300) {
+            int i = (selectedDirection - 200) / 10;
+            Map<String, List<String>> n = EventController.MENU.get(i);
+            g2d.setColor(Color.WHITE);
+            int x = getWidth() / 6 * i;
+            g2d.fillRect(x , 24, getWidth() / 4, 15 * n.size());
+            int j = 0;
+            for (Map.Entry<String, List<String>> s : n.entrySet()) {
+                drawText(g2d, x, 33 + j * 15, getWidth() / 4.0, s.getKey());
+                j++;
+            }
+        }
     }
 
     private static void drawWindow(Graphics2D g2d, LinkedEvent linkedEvent) {
@@ -356,13 +370,20 @@ public class EventsPane extends JPanel {
             case OPERATOR -> "演算";
         });
 
+        {
+            double v = (y + 20 + (height - 20) / 2);
+            g2d.setColor(Color.WHITE);
+            g2d.fillOval(((int) (x - 4)), ((int) (v - 4)), 8, 8);
+            g2d.setColor(INPUT);
+            g2d.fillOval(((int) (x - 2)), ((int) (v - 2)), 4, 4);
+        }
         int maxConnections = linkedEvent.getMaxConnections();
         for (int i = 0; i < maxConnections; i++) {
             double v = y + 20 + (height - 20) / (maxConnections + 1) * (i + 1);
             g2d.setColor(Color.WHITE);
-            g2d.fillOval((int) (x + width - 4), (int) v - 4, 8, 8);
-            g2d.setColor(Color.CYAN);
-            g2d.fillOval((int) (x + width - 2), (int) v - 2, 4, 4);
+            g2d.fillOval((int) (x + width - 4), ((int) (v - 4)), 8, 8);
+            g2d.setColor(OUTPUT);
+            g2d.fillOval((int) (x + width - 2), ((int) (v - 2)), 4, 4);
         }
 
         // 引数を表示

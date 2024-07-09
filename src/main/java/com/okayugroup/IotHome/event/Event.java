@@ -23,6 +23,7 @@ package com.okayugroup.IotHome.event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class Event<T> {
@@ -31,6 +32,12 @@ public abstract class Event<T> {
         this.child = child;
         this.type = type;
         setArgs(args);
+    }
+    public static String getTypicalName(Class<?> event) {
+        return event.getSimpleName();
+    }
+    public static List<String> getTypicalName(Class<?>... events) {
+        return Arrays.stream(events).map(Event::getTypicalName).toList();
     }
     protected final String name;
     protected final String child;
@@ -54,7 +61,6 @@ public abstract class Event<T> {
         return name + " - " + child;
     }
 
-
     /**
      * @param previousResult The result of the previous event
      * @return The result of this event's execution
@@ -73,7 +79,7 @@ public abstract class Event<T> {
     }
 
     public String getTypicalName() {
-        return getClass().getSimpleName();
+        return getTypicalName(getClass());
     }
 
     public void setSizeChangedListener(SizeChangeListener listener) {

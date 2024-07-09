@@ -32,12 +32,23 @@ import java.util.*;
 
 public class EventController {
     private static UserEventsObject tree = null;
+
+    public static final List<Map<String, List<String>>> MENU = List.of(
+            Map.of(
+                    "インターネット", List.of(Event.getTypicalName(RequestEvent.class))
+            ),
+            Map.of(
+                    "コンソール", Event.getTypicalName(CommandEvent.ConsoleCommand.class, CommandEvent.PowershellCommand.class, CommandEvent.CmdPromptCommand.class),
+                    "ファイル実行", Event.getTypicalName(FileExecutionEvent.ExecuteFile.class, FileExecutionEvent.PlaySound.class),
+                    "ウェブリクエスト", Event.getTypicalName(WebRequestEvent.GetRequest.class, WebRequestEvent.PostRequest.class)
+            )
+    );
+
     public static final Map<String, TemplatedEvent> EVENT_DICT = initEvents();
 
     private static @NotNull Map<String, TemplatedEvent> initEvents() {
         Map<String, TemplatedEvent> events = new LinkedHashMap<>();
-        add(events, new CommandEvent.ConsoleCommand(),
-                "実行するコマンド");
+        add(events, new CommandEvent.ConsoleCommand(),    "実行するコマンド");
         add(events, new CommandEvent.CmdPromptCommand(),  "実行するWindowsコマンド");
         add(events, new CommandEvent.PowershellCommand(), "実行するPowerShellコマンド");
         add(events, new FileExecutionEvent.ExecuteFile(), "実行するファイル", "実行元のディレクトリ");
@@ -97,50 +108,4 @@ public class EventController {
         }
         return null;
     }
-
-    /*public static void addEvent(Event<?> event) {
-        if (event instanceof InputEvent<?> input) {
-            if (!tree.inputs().containsKey(input.getParentName())) {
-                HashMap<String, List<Event<?>>> h = new HashMap<>();
-                List<Event<?>> l = new ArrayList<>();
-                l.add(event);
-                h.put(input.getChildName(), l);
-                tree.inputs().put(input.getParentName(), h);
-            } else if (!tree.inputs().get(input.getParentName()).containsKey(input.getChildName())) {
-                List<Event<?>> l = new ArrayList<>();
-                l.add(event);
-                tree.inputs().get(input.getParentName()).put(input.getChildName(), l);
-            } else {
-                tree.inputs().get(input.getParentName()).get(input.getChildName()).add(event);
-            }
-        }
-        tree.events().add(event);
-    }
-    public static boolean containsEvent(String root, String text) {
-
-        return getTree().inputs().get(root).containsKey(text);
-    }
-    public static void setEvent(String root, String oldName, String newName) {
-        Map<String, List<Event<?>>> rootMap = getTree().inputs().get(root);
-        List<Event<?>> value = rootMap.get(oldName);
-        rootMap.remove(oldName, value);
-        rootMap.put(newName, value);
-    }
-    public static void setEvent(String oldRootName, String newRootName) {
-        Map<String, List<Event<?>>> value = getTree().inputs().get(oldRootName);
-        getTree().inputs().remove(oldRootName, value);
-        getTree().inputs().put(newRootName, value);
-    }
-
-    public static boolean containsOnRoot(String root) {
-        return getTree().inputs().containsKey(root);
-    }
-
-    public static void putNewOnRoot(String name) {
-        getTree().inputs().put(name, new HashMap<>());
-    }
-
-    public static void putNewEvent(String root, String name) {
-        getTree().inputs().get(root).put(name, new ArrayList<>());
-    }*/
 }
