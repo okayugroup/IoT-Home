@@ -86,13 +86,6 @@ public abstract class Event<T> {
         this.listener = listener;
     }
     public abstract String getReturns();
-    public void removeSizeChangedListener() {
-        listener = null;
-    }
-
-    public SizeChangeListener getSizeChangedListener() {
-        return listener;
-    }
 
     private void onSizeChanged(int a) {
         listener.updated(a);

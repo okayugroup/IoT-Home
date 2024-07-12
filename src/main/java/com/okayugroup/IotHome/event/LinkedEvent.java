@@ -97,4 +97,9 @@ public class LinkedEvent {
     public int getMaxConnections() {
         return maxConnections;
     }
+
+    @Override
+    public String toString() {
+        return event.toString() + "(" + width + " * " + height + ", [" + x + ", " + y + "])" + ")";
+    }
 }

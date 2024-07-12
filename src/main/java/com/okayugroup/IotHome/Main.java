@@ -25,8 +25,8 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
-/*        Thread t = new Thread(() -> IoTHomeApplication.main(args));
-        t.start();*/
+        //Thread t = new Thread(() -> IoTHomeApplication.main(args));
+        //t.start();
         if (!Arrays.asList(args).contains("--nogui")) {
             try {
                 SwingUtilities.invokeLater(() -> MainView.main(args));

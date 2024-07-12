@@ -19,10 +19,8 @@
 
 package com.okayugroup.IotHome;
 
+import com.okayugroup.IotHome.event.*;
 import com.okayugroup.IotHome.event.Event;
-import com.okayugroup.IotHome.event.EventController;
-import com.okayugroup.IotHome.event.LinkedEvent;
-import com.okayugroup.IotHome.event.UserEventsObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,6 +46,7 @@ public class EventsPane extends JPanel {
     private boolean scrollable;
     private boolean dragging = false;
     private UserEventsObject userEventsObject;
+    private int selectedMenuIndex = -1;
 
     public EventsPane() {
         super();
@@ -57,9 +56,10 @@ public class EventsPane extends JPanel {
                 super.mousePressed(e);
                 startX = e.getX();
                 startY = e.getY();
+                dragging = true;
                 selectedDirection = getSelectedNode(e);
                 scrollable = selectedDirection == -1;
-                dragging = true;
+
                 if (selectedNode != null) {
                     userEventsObject.events().remove(selectedNode);
                     userEventsObject.events().add(0, selectedNode);
@@ -155,15 +155,50 @@ public class EventsPane extends JPanel {
     public int getSelectedNode(MouseEvent e) {
         if (e.getY() < 24) {
             selectedNode = null;
+            selectedMenuIndex = -1;
             if (e.getX() < getWidth() / 6) {
-                return 200;
+                return 16;
             }
             if (getWidth() / 6 < e.getX() && e.getX() <= getWidth() / 3) {
-                return 210;
+                return 17;
             }
-            return 16;
-        }
 
+            return 15;
+
+        }
+        if (16 <= selectedDirection && selectedDirection <= 17) {
+            int i = selectedDirection - 16;
+            int x = getWidth() / 6 * i;
+            int selected = -1;
+            Map<String, List<String>> n = EventController.MENU.get(i);
+            if (e.getY() < n.size() * 15 + 24) {
+                if (x <= e.getX() && e.getX() < x + getWidth() / 4) {
+                    selected = (e.getY() - 24) / 15;
+                }
+            }
+            if (-1 < selected || -1 < selectedMenuIndex) {
+                if (dragging) {
+                    if (x + getWidth() / 4 <= e.getX() && e.getX() <= x + getWidth() / 2) {
+                        int j = 0;
+                        for (Map.Entry<String, List<String>> value : n.entrySet()) {
+                            if (j == selectedMenuIndex) {
+                                List<String> values = value.getValue();
+                                if (24 + 15 * j <= e.getY() && e.getY() <= 24 + 15 * (j + values.size())) {
+                                    Event<?> event = EventController.EVENT_DICT.get(values.get((e.getY() - 24 - 15 * j) / 15)).getNew();
+                                    selectedNode = new LinkedEvent(event, 0, 0, 100, 100);
+                                    EventController.getTree().events().add(selectedNode);
+                                    return 12;
+                                }
+                            }
+                            j++;
+                        }
+                    } else {
+                        selectedMenuIndex = selected;
+                    }
+                }
+                return selectedDirection;
+            }
+        }
         for (LinkedEvent event : userEventsObject.events()) {
             double x = e.getX() - event.getX() - translateX;
             double y = e.getY() - event.getY() - translateY;
@@ -176,6 +211,7 @@ public class EventsPane extends JPanel {
                     return 100 + i;
                 }
             }
+
 
             if (0 <= y && y <= height) {
                 if (-5 <= x && x <= 0) {
@@ -291,8 +327,8 @@ public class EventsPane extends JPanel {
             }
         }
 
-        if (200 <= selectedDirection && selectedDirection < 300) {
-            int i = (selectedDirection - 200) / 10;
+        if (16 <= selectedDirection && selectedDirection <= 17) {
+            int i = selectedDirection - 16;
             Map<String, List<String>> n = EventController.MENU.get(i);
             g2d.setColor(Color.WHITE);
             int x = getWidth() / 6 * i;
@@ -300,7 +336,19 @@ public class EventsPane extends JPanel {
             int j = 0;
             for (Map.Entry<String, List<String>> s : n.entrySet()) {
                 drawText(g2d, x, 33 + j * 15, getWidth() / 4.0, s.getKey());
+                if (j == selectedMenuIndex) {
+                    g2d.setColor(Color.WHITE);
+                    List<String> values = s.getValue();
+                    g2d.fillRect(x + getWidth() / 4, 24 + j * 15, getWidth() / 4, values.size() * 15);
+                    for (int k = 0; k < values.size(); k++) {
+                        drawText(g2d, x + getWidth() / 4f, 33 + (j + k) * 15, getWidth() / 4.0, values.get(k));
+                    }
+                }
                 j++;
+            }
+            if (-1 < selectedMenuIndex) {
+                g2d.setColor(new Color(0, 0, 0, 50));
+                g2d.fillRect(x, 24 + selectedMenuIndex * 15, getWidth() / 4, 15);
             }
         }
     }
