@@ -19,8 +19,6 @@
 
 package com.okayugroup.IotHome.event;
 
-import com.okayugroup.IotHome.event.temporary.CommandEvent;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
