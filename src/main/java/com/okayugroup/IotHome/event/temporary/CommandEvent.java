@@ -42,14 +42,13 @@ public abstract class CommandEvent extends TemporaryEvent<List<String>> {
     protected String command;
 
     @Override
-    public CommandEvent setArgs(@Nullable String... args) {
+    public void setArgs(@Nullable String... args) {
         command = args != null && args.length > 0 ? args[0] : null;
-        return this;
     }
 
     @Override
     public @NotNull String @NotNull [] getArgs() {
-        return command == null ? new String[0] : new String[]{command};
+        return command == null ? new String[] {""} : new String[]{command};
     }
 
     EventResult<List<String>> execute(@Nullable EventResult<?> previousResult, int typeIndex)  {

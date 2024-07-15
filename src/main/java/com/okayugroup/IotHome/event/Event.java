@@ -50,8 +50,8 @@ public abstract class Event<T> {
         return child;
     }
     @NotNull
-    public abstract String[] getArgs();
-    public abstract Event<T> setArgs(String... args);
+    protected abstract String[] getArgs();
+    protected abstract void setArgs(String... args);
     public abstract Event<T> getCopy();
     public TemplatedEvent getTemplate() {
         return EventController.getTemplate(this);

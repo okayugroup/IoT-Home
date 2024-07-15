@@ -24,9 +24,7 @@ import com.okayugroup.IotHome.event.Event;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 import java.awt.geom.GeneralPath;
 import java.util.List;
 import java.util.Map;
@@ -42,14 +40,29 @@ public class EventsPane extends JPanel {
     private double startX = 0, startY = 0;
     private double translateX = 0, translateY = 0;
     private LinkedEvent selectedNode;
+    private LinkedEvent modifyingNode;
     private int selectedDirection;
     private boolean scrollable;
     private boolean dragging = false;
     private UserEventsObject userEventsObject;
     private int selectedMenuIndex = -1;
+    private int modifying = -1;
+    private final TextField field;
 
     public EventsPane() {
         super();
+        Timer timer = new Timer(500, e -> {
+            if (selectedDirection == 20) {
+                repaint();
+            }
+        });
+        timer.start();
+
+        setLayout(null);  //絶対位置指定にする
+        field = new TextField();
+        field.setVisible(false);
+        add(field);
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -57,6 +70,16 @@ public class EventsPane extends JPanel {
                 startX = e.getX();
                 startY = e.getY();
                 dragging = true;
+                if (0 <= modifying) {
+                    if (modifyingNode == null) { // 何らかの理由でバグが発生したと認定された場合
+                        modifying = -1;
+                    } else {
+                        String[] args = modifyingNode.getArgs();
+                        args[modifying] = field.getText();
+                        modifyingNode.setArgs(args);
+                        field.setVisible(false);
+                    }
+                }
                 selectedDirection = getSelectedNode(e);
                 scrollable = selectedDirection == -1;
 
@@ -64,6 +87,28 @@ public class EventsPane extends JPanel {
                     userEventsObject.events().remove(selectedNode);
                     userEventsObject.events().add(0, selectedNode);
                     repaint();
+                }
+                if (selectedDirection == 20) {
+                    modifyingNode = selectedNode;
+                    if (modifyingNode != null) {
+                        double y = e.getY() - modifyingNode.getY() - translateY;
+                        double height = modifyingNode.getHeight();
+                        double width = modifyingNode.getWidth();
+                        String[] args = modifyingNode.getArgs();
+                        for (int i = 0; i < modifyingNode.getEvent().getTemplate().getArgDescriptions().length; i++) {
+                            if (45 + 30 * i > height)
+                                break;
+                            if (38 + 30 * i <= y && y < 52 + 30 * i) {
+                                modifying = i;
+                                field.setBounds(((int) (modifyingNode.getX() + 2 + translateX)), ((int) (modifyingNode.getY() + 38 + 30 * i + translateY)), ((int) width) - 4, 14);
+                                field.setText(i > args.length - 1 ? "" : args[i]);
+                                field.setVisible(true);
+                            }
+                        }
+                    }
+                } else {
+                    modifying = -1;
+                    field.setVisible(false);
                 }
 
             }
@@ -185,7 +230,7 @@ public class EventsPane extends JPanel {
                                 List<String> values = value.getValue();
                                 if (24 + 15 * j <= e.getY() && e.getY() <= 24 + 15 * (j + values.size())) {
                                     Event<?> event = EventController.EVENT_DICT.get(values.get((e.getY() - 24 - 15 * j) / 15)).getNew();
-                                    selectedNode = new LinkedEvent(event, 0, 0, 100, 100);
+                                    selectedNode = new LinkedEvent(event, -translateX + e.getX() - 10, -translateY + e.getY() - 10, 200, 100);
                                     EventController.getTree().events().add(selectedNode);
                                     return 12;
                                 }
@@ -211,7 +256,6 @@ public class EventsPane extends JPanel {
                     return 100 + i;
                 }
             }
-
 
             if (0 <= y && y <= height) {
                 if (-5 <= x && x <= 0) {
@@ -250,13 +294,22 @@ public class EventsPane extends JPanel {
                 selectedNode = event;
                 return 7;
             }
-            if (0 <= x && x <= width) {
-                if (0 <= y && y <= 20) {
+            if (0 <= x && x <= width && 0 <= y) {
+                if (y <= 20) {
                     selectedNode = event;
                     return 12;
                 }
-                else if (0 <= y && y <= height) {
+                for (int i = 0; i < event.getEvent().getTemplate().getArgDescriptions().length; i++) {
+                    if (45 + 30 * i > height)
+                        break;
+                    if (38 + 30 * i <= y && y < 52 + 30 * i) {
+                        selectedNode = event;
+                        return 20;
+                    }
+                }
+                if (y <= height) {
                     selectedNode = event;
+
                     return 13;
                 }
             }
@@ -321,7 +374,11 @@ public class EventsPane extends JPanel {
         if (100 <= selectedDirection && selectedDirection < 200) {
             g2d.setColor(INPUT);
             double y = selectedNode.getY() + translateY + 20 + (selectedNode.getHeight() - 20) / (selectedNode.getMaxConnections() + 1) * (selectedDirection - 100 + 1);
-            g2d.drawString(selectedNode.getEvent().getReturns(), (float) (selectedNode.getX() + translateX + selectedNode.getWidth() + 4), (float) (y - 2));
+            String[] returns = selectedNode.getEvent().getReturns().split("\n");
+            for (int i = 0; i < returns.length; i++) {
+                g2d.drawString(returns[i], (float) (selectedNode.getX() + translateX + selectedNode.getWidth() + 4), (float) (y - 2 + 10 * i));
+            }
+
             if (dragging) {
                 g2d.drawLine((int) (selectedNode.getX() + translateX + selectedNode.getWidth()), (int) y, (int) startX, (int) startY);
             }
@@ -353,7 +410,7 @@ public class EventsPane extends JPanel {
         }
     }
 
-    private static void drawWindow(Graphics2D g2d, LinkedEvent linkedEvent) {
+    private void drawWindow(Graphics2D g2d, LinkedEvent linkedEvent) {
         double x = linkedEvent.getX(), y = linkedEvent.getY(), width = linkedEvent.getWidth(), height = linkedEvent.getHeight();
         g2d.setFont(FONT.deriveFont(10f));
         Event<?> event = linkedEvent.getEvent();
@@ -437,13 +494,16 @@ public class EventsPane extends JPanel {
         // 引数を表示
         g2d.setColor(Color.BLACK);
         String[] argDesc = event.getTemplate().getArgDescriptions();
-        String[] args = event.getArgs();
+        String[] args = linkedEvent.getArgs();
+
         for (int i = 0; i < argDesc.length; i++) {
             if (45 + 30 * i > height) break;
             g2d.setFont(g2d.getFont().deriveFont(Font.BOLD, 10));
             drawText(g2d, (float) (x + 5), (float) (y + 35 + 30 * i), width - 10, argDesc[i]);
             g2d.setFont(g2d.getFont().deriveFont(Font.PLAIN, 8));
-            drawText(g2d, (float) (x + 5), (float) (y + 46 + 30 * i), width - 10, i > args.length - 1 ? "" : args[i]);
+            if (!(modifying == i && selectedNode == linkedEvent)) {
+                drawText(g2d, (float) (x + 5), (float) (y + 46 + 30 * i), width - 10, i > args.length - 1 ? "" : args[i]);
+            }
         }
 
 

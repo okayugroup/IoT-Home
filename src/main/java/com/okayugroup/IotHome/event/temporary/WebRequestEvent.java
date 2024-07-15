@@ -55,20 +55,19 @@ public abstract class WebRequestEvent extends TemporaryEvent<String> {
         try {
             value = objectMapper.writeValueAsString(headers);
         } catch (JsonProcessingException ignored) { }
-        return new String[]{url, Long.toString(timeout), value, content};
+        return new String[]{url, Integer.toString(timeout), value, content};
 
     }
     @Override
-    public WebRequestEvent setArgs(String... args) {
-        url = args.length > 0 ? args[0] : null;
+    public void setArgs(String... args) {
+        url = args.length > 0 ? args[0] : "";
         timeout = args.length > 1 ? Integer.parseInt(args[1]) : 300;
         try {
             headers = args.length > 2 ? objectMapper.readValue(args[2], new TypeReference<>(){}) : Map.of();
         } catch (JsonProcessingException e) {
             headers = Map.of();
         }
-        content = args.length > 3 ? args[3] : null;
-        return this;
+        content = args.length > 3 ? args[3] : "";
     }
     @Override
     public String getReturns() {

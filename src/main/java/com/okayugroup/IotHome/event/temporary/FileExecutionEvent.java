@@ -40,10 +40,9 @@ public abstract class FileExecutionEvent extends TemporaryEvent<List<String>> {
     @Override
     public abstract FileExecutionEvent getCopy();
     @Override
-    public FileExecutionEvent setArgs(String... args) {
+    public void setArgs(String... args) {
         filePath = args.length > 0 ? args[0] : "";
         directory = args.length > 1 ? args[1] : null;
-        return this;
     }
 
     @Override

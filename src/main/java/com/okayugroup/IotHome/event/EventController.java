@@ -33,16 +33,17 @@ import java.util.*;
 public class EventController {
     private static UserEventsObject tree = null;
 
-    public static final List<Map<String, List<String>>> MENU = List.of(
-            Map.of(
-                    "インターネット", List.of(Event.getTypicalName(RequestEvent.class))
-            ),
-            Map.of(
-                    "コンソール", Event.getTypicalName(CommandEvent.ConsoleCommand.class, CommandEvent.PowershellCommand.class, CommandEvent.CmdPromptCommand.class),
-                    "ファイル実行", Event.getTypicalName(FileExecutionEvent.ExecuteFile.class, FileExecutionEvent.PlaySound.class),
-                    "ウェブリクエスト", Event.getTypicalName(WebRequestEvent.GetRequest.class, WebRequestEvent.PostRequest.class)
-            )
-    );
+    public static final List<Map<String, List<String>>> MENU = initMenu();
+
+    private static List<Map<String, List<String>>> initMenu() {
+        Map<String, List<String>> a = new LinkedHashMap<>();
+        a.put("インターネット", List.of(Event.getTypicalName(RequestEvent.class)));
+        Map<String, List<String>> b = new LinkedHashMap<>();
+        b.put("コンソール", Event.getTypicalName(CommandEvent.ConsoleCommand.class, CommandEvent.PowershellCommand.class, CommandEvent.CmdPromptCommand.class));
+        b.put("ファイル実行", Event.getTypicalName(FileExecutionEvent.ExecuteFile.class, FileExecutionEvent.PlaySound.class));
+        b.put("ウェブリクエスト", Event.getTypicalName(WebRequestEvent.GetRequest.class, WebRequestEvent.PostRequest.class));
+        return List.of(a, b);
+    }
 
     public static final Map<String, TemplatedEvent> EVENT_DICT = initEvents();
 
@@ -107,5 +108,25 @@ public class EventController {
             }
         }
         return null;
+    }
+
+    public static void setEventDict(LinkedEvent linkedEvent) {
+        if (linkedEvent.getEvent() instanceof RequestEvent event) {
+            Map<String, Map<String, LinkedEvent>> inputs = tree.inputs();
+            for (Map<String, LinkedEvent> value : inputs.values()) {
+                for (Map.Entry<String, LinkedEvent> stringLinkedEventEntry : value.entrySet()) {
+                    if (stringLinkedEventEntry.getValue() == linkedEvent) {
+                        value.remove(stringLinkedEventEntry.getKey());
+                    }
+                }
+            }
+            if (inputs.containsKey(event.category)){
+                inputs.get(event.category).put(event.field, linkedEvent);
+            } else{
+                HashMap<String, LinkedEvent> map = new HashMap<>();
+                map.put(event.field, linkedEvent);
+                inputs.put(event.category, map);
+            }
+        }
     }
 }

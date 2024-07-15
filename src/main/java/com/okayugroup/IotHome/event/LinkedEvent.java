@@ -19,10 +19,15 @@
 
 package com.okayugroup.IotHome.event;
 
+import com.okayugroup.IotHome.event.temporary.CommandEvent;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Eventに表示とリンク機能を加えたもの。それぞれ固有のEventをもつ。
+ */
 public class LinkedEvent {
     private final Event<?> event;
     private final List<LinkedEvent> events = new ArrayList<>();
@@ -101,5 +106,14 @@ public class LinkedEvent {
     @Override
     public String toString() {
         return event.toString() + "(" + width + " * " + height + ", [" + x + ", " + y + "])" + ")";
+    }
+
+    public void setArgs(String... args) {
+        event.setArgs(args);
+        EventController.setEventDict(this);
+    }
+
+    public String[] getArgs() {
+        return event.getArgs();
     }
 }
