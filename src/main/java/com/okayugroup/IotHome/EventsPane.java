@@ -21,11 +21,14 @@ package com.okayugroup.IotHome;
 
 import com.okayugroup.IotHome.event.*;
 import com.okayugroup.IotHome.event.Event;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.GeneralPath;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +51,8 @@ public class EventsPane extends JPanel {
     private int selectedMenuIndex = -1;
     private int modifying = -1;
     private final TextField field;
+    @NotNull
+    private LocalDateTime clicked = LocalDateTime.now();
 
     public EventsPane() {
         super();
@@ -110,6 +115,16 @@ public class EventsPane extends JPanel {
                     modifying = -1;
                     field.setVisible(false);
                 }
+                if (Duration.between(clicked, LocalDateTime.now()).abs().toMillis() < 500) {
+                    if (selectedNode != null) {
+                        if (selectedDirection == 12) {
+                            EventController.removeEvent(selectedNode);
+                            selectedNode = null;
+
+                        }
+                    }
+                }
+                clicked = LocalDateTime.now();
 
             }
             @Override
@@ -121,7 +136,9 @@ public class EventsPane extends JPanel {
                 }
                 selectedDirection = getSelectedNode(e);
                 if (linkedEvent != null && selectedNode != null) {
-                    linkedEvent.getEvents().add(selectedNode);
+                    if (!EventController.included(selectedNode, linkedEvent)) {
+                        linkedEvent.getEvents().add(selectedNode);
+                    }
                 }
                 extracted(e);
                 dragging = false;
@@ -179,6 +196,7 @@ public class EventsPane extends JPanel {
             }
         });
     }
+
 
     private void extracted(MouseEvent e) {
         setCursor(switch (selectedDirection = getSelectedNode(e)) {

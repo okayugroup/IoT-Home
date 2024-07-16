@@ -129,4 +129,28 @@ public class EventController {
             }
         }
     }
+
+    public static void removeEvent(LinkedEvent event) {
+        UserEventsObject eventsObject = getTree();
+        eventsObject.events().remove(event);
+        for (LinkedEvent linkedEvent : eventsObject.events()) {
+            linkedEvent.getEvents().remove(event);
+        }
+        if (event.getEvent() instanceof RequestEvent requestEvent) {
+            if (eventsObject.inputs().containsKey(requestEvent.category)) {
+                eventsObject.inputs().get(requestEvent.category).remove(requestEvent.field);
+            }
+        }
+    }
+
+    public static boolean included(LinkedEvent li, LinkedEvent target) {
+        for (LinkedEvent event : li.getEvents()) {
+            if (event == target) {
+                return true;
+            } else if (included(event, target)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
