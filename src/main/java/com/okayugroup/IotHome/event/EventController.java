@@ -52,7 +52,7 @@ public class EventController {
         add(events, new CommandEvent.ConsoleCommand(),    "実行するコマンド");
         add(events, new CommandEvent.CmdPromptCommand(),  "実行するWindowsコマンド");
         add(events, new CommandEvent.PowershellCommand(), "実行するPowerShellコマンド");
-        add(events, new FileExecutionEvent.ExecuteFile(), "実行するファイル", "実行元のディレクトリ");
+        add(events, new FileExecutionEvent.ExecuteFile(), "実行するファイル", "実行元のディレクトリ(任意)");
         add(events, new FileExecutionEvent.PlaySound(),   "再生する音声ファイル (*.wav,*.mp3)");
         add(events, new WebRequestEvent.GetRequest(),     "GETするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)");
         add(events, new WebRequestEvent.PostRequest(),    "POSTするURL", "タイムアウト時間(ミリ秒)", "ヘッダー(JSON形式)", "送信するコンテンツ");
