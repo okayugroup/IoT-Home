@@ -91,6 +91,9 @@ public class EventsPane extends JPanel {
                 if (selectedNode != null) {
                     userEventsObject.events().remove(selectedNode);
                     userEventsObject.events().add(0, selectedNode);
+                    if (selectedDirection == 14) {
+                        selectedNode.setAsync(!selectedNode.isAsync());
+                    }
                     repaint();
                 }
                 if (selectedDirection == 20) {
@@ -248,7 +251,7 @@ public class EventsPane extends JPanel {
                                 List<String> values = value.getValue();
                                 if (24 + 15 * j <= e.getY() && e.getY() <= 24 + 15 * (j + values.size())) {
                                     Event<?> event = EventController.EVENT_DICT.get(values.get((e.getY() - 24 - 15 * j) / 15)).getNew();
-                                    selectedNode = new LinkedEvent(event, -translateX + e.getX() - 10, -translateY + e.getY() - 10, 200, 100);
+                                    selectedNode = new LinkedEvent(event, -translateX + e.getX() - 10, -translateY + e.getY() - 10, 200, 100, false);
                                     EventController.getTree().events().add(selectedNode);
                                     return 12;
                                 }
@@ -315,6 +318,9 @@ public class EventsPane extends JPanel {
             if (0 <= x && x <= width && 0 <= y) {
                 if (y <= 20) {
                     selectedNode = event;
+                    if (x <= width * 0.3) {
+                        return 14;
+                    }
                     return 12;
                 }
                 for (int i = 0; i < event.getEvent().getTemplate().getArgDescriptions().length; i++) {
@@ -467,31 +473,40 @@ public class EventsPane extends JPanel {
         g2d.setColor(GRAY1);
         g2d.fill(path);
 
-        drawText(g2d, (float) (x + width * .15 + 10), (float) y + 15, width * .35 - 10, event.getParentName());
+        drawText(g2d, (float) (x + width * .25 + 10), (float) y + 15, width * .25 - 10, event.getParentName());
 
         path.reset();
-        path.moveTo(x + width * .15, y + 20);
-        path.lineTo(x + width * .15 + 10, y + 10);
-        path.lineTo(x + width * .15, y);
+        path.moveTo(x + width * .25, y + 20);
+        path.lineTo(x + width * .25 + 10, y + 10);
+        path.lineTo(x + width * .25, y);
         path.lineTo(x + 10, y);
         path.quadTo(x, y, x, y + 10);
         path.lineTo(x, y + 20);
 
         // 色をプリセットから指定
-        g2d.setColor(switch(event.getTypeId()) {
+        Color c = switch (event.getTypeId()) {
             case INPUT -> INPUT;
             case OUTPUT -> OUTPUT;
             case TEMPORARY -> TEMPORARY;
             case OPERATOR -> OPERATOR;
-        });
-        g2d.fill(path);
-
-        drawText(g2d, (float) x + 5, (float) y + 15, width * .2 - 10, switch(event.getTypeId()) {
+        };
+        String text = switch (event.getTypeId()) {
             case INPUT -> "入力";
             case OUTPUT -> "出力";
             case TEMPORARY -> "中間";
             case OPERATOR -> "演算";
-        });
+        };
+        if (linkedEvent.isAsync()) {
+            c = c.brighter();
+            text += "(非同期)";
+        }
+        g2d.setColor(c);
+        g2d.fill(path);
+
+
+        drawText(g2d, (float) x + 5, (float) y + 15, width * .3 - 10, text);
+
+
 
         {
             double v = (y + 20 + (height - 20) / 2);

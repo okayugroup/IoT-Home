@@ -50,7 +50,7 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
                 indices2.add(link.asInt());
             }
 
-            events.add(new LinkedEvent(event, node1.get("x").asDouble(), node1.get("y").asDouble(), node1.get("width").asDouble(), node1.get("height").asDouble()));
+            events.add(new LinkedEvent(event, node1.get("x").asDouble(), node1.get("y").asDouble(), node1.get("width").asDouble(), node1.get("height").asDouble(), node1.get("async").asBoolean()));
             indices.add(indices2);
         }
         for (int i = 0; i < events.size(); i++) {
@@ -105,6 +105,7 @@ public record UserEventsObject(Map<String, Map<String, LinkedEvent>> inputs, Lis
             eventNode.put("y", event.getY());
             eventNode.put("width", event.getWidth());
             eventNode.put("height", event.getHeight());
+            eventNode.put("async", event.isAsync());
             values.add(eventNode);
         }
         root.set("events", values);

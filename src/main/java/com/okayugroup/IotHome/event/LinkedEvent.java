@@ -34,14 +34,16 @@ public class LinkedEvent {
     private double width;
     private double height;
     private int maxConnections = 1;
+    private boolean isAsync;
 
-    public LinkedEvent(Event<?> event, double x, double y, double width, double height, LinkedEvent... events) {
+    public LinkedEvent(Event<?> event, double x, double y, double width, double height, boolean isAsync, LinkedEvent... events) {
         this.event = event;
         event.setSizeChangedListener(this::setMaxConnections);
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.isAsync = isAsync;
         Collections.addAll(this.events, events);
     }
     public Event<?> getEvent() {
@@ -89,8 +91,13 @@ public class LinkedEvent {
     }
 
     public EventResult<?> execute(EventResult<?> result) {
-        EventResult<?> resultNext = event.execute(result);
-        return event.executeLinkedEvents(events, resultNext);
+        if (isAsync) {
+            new Thread(() -> event.execute(result)).start();
+            return event.executeLinkedEvents(events, result);
+        } else {
+            EventResult<?> resultNext = event.execute(result);
+            return event.executeLinkedEvents(events, resultNext);
+        }
     }
 
     private void setMaxConnections(int value) {
@@ -113,5 +120,13 @@ public class LinkedEvent {
 
     public String[] getArgs() {
         return event.getArgs();
+    }
+
+    public boolean isAsync() {
+        return isAsync;
+    }
+
+    public void setAsync(boolean async) {
+        isAsync = async;
     }
 }
