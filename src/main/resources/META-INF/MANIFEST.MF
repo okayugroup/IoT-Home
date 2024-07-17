@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Main-Class: com.okayugroup.IotHome.Main
+Main-Class: com.okayugroup.iothome.Main
 Class-Path: jul-to-slf4j-2.0.13.jar log4j-to-slf4j-2.21.1.jar tomcat-emb
  ed-el-10.1.20.jar log4j-api-2.21.1.jar spring-aop-6.1.6.jar jackson-dat
  abind-2.15.4.jar spring-beans-6.1.6.jar jackson-module-parameter-names-

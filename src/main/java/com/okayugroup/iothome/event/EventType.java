@@ -17,16 +17,11 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
+package com.okayugroup.iothome.event;
 
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class IoTHomeApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(IoTHomeApplication.class, args);
-	}
+public enum EventType {
+    INPUT,
+    OUTPUT,
+    OPERATOR,
+    TEMPORARY,
 }

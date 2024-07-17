@@ -18,7 +18,7 @@
  */
 
 
-package com.okayugroup.IotHome.event;
+package com.okayugroup.iothome.event;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

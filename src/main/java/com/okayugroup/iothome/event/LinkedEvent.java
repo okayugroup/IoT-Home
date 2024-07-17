@@ -17,7 +17,7 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event;
+package com.okayugroup.iothome.event;
 
 import java.util.ArrayList;
 import java.util.Collections;

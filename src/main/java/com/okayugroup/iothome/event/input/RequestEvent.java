@@ -17,11 +17,11 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event.input;
+package com.okayugroup.iothome.event.input;
 
-import com.okayugroup.IotHome.event.Event;
-import com.okayugroup.IotHome.event.EventResult;
-import com.okayugroup.IotHome.event.InputEvent;
+import com.okayugroup.iothome.event.Event;
+import com.okayugroup.iothome.event.EventResult;
+import com.okayugroup.iothome.event.InputEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

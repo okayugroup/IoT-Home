@@ -17,15 +17,15 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event.temporary;
+package com.okayugroup.iothome.event.temporary;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.okayugroup.IotHome.LogController;
-import com.okayugroup.IotHome.event.EventResult;
-import com.okayugroup.IotHome.event.TemporaryEvent;
+import com.okayugroup.iothome.LogController;
+import com.okayugroup.iothome.event.EventResult;
+import com.okayugroup.iothome.event.TemporaryEvent;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 import org.jetbrains.annotations.NotNull;

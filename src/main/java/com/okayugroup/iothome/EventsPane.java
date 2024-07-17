@@ -17,10 +17,10 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
+package com.okayugroup.iothome;
 
-import com.okayugroup.IotHome.event.*;
-import com.okayugroup.IotHome.event.Event;
+import com.okayugroup.iothome.event.*;
+import com.okayugroup.iothome.event.Event;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -1,4 +1,4 @@
-package com.okayugroup.IotHome;
+package com.okayugroup.iothome;
 
 import java.util.ArrayList;
 import java.util.List;

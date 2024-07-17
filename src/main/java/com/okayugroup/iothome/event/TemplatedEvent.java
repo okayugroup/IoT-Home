@@ -17,29 +17,21 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
+package com.okayugroup.iothome.event;
 
-import org.jetbrains.annotations.Nullable;
-
-public class LogController {
-    public enum LogLevel {
-        DEBUG,
-        INFO,
-        ERROR
-    }
-    public static LogController LOGGER = new LogController(null);
-    @Nullable
-    private final MainView view;
-    public LogController(@Nullable MainView view){
-        this.view = view;
-        LOGGER = this;
-    }
-    public void log(String message) {
-        log(LogLevel.INFO, message);
-    }
-    public void log(LogLevel level, String message) {
-        if (view != null)
-            view.setLog(level, message);
+public class TemplatedEvent {
+    private final Event<?> event;
+    private final String[] argDescriptions;
+    public TemplatedEvent(Event<?> event, String[] argDescriptions) {
+        this.event = event;
+        this.argDescriptions = argDescriptions;
     }
 
+    public String[] getArgDescriptions() {
+        return argDescriptions;
+    }
+
+    public Event<?> getNew() {
+        return event.getCopy();
+    }
 }

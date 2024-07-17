@@ -17,7 +17,7 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
+package com.okayugroup.iothome;
 
 import javax.swing.*;
 import java.awt.*;

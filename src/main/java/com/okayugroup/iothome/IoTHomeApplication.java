@@ -17,22 +17,16 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
-
-import com.okayugroup.IotHome.event.EventController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+package com.okayugroup.iothome;
 
 
-@RestController
-public class Resources {
-    public final String parent = "/api"; // API側の親を定義します
-    @GetMapping(parent + "/{root}/{controller}")
-    public Object getIt(@PathVariable String root, @PathVariable String controller) {
-        var re = EventController.execute(root, controller);
-        if (re != null) return re.result();
-        return null;
-    }
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SpringBootApplication
+public class IoTHomeApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(IoTHomeApplication.class, args);
+	}
 }

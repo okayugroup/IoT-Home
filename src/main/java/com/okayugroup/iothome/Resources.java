@@ -17,18 +17,22 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event;
+package com.okayugroup.iothome;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Nullable;
+import com.okayugroup.iothome.event.EventController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 
-public record EventResult<T>(@Nullable Exception exception, T result){
-    @Contract(pure = true)
-    public boolean isError() {
-        return exception != null;
+@RestController
+public class Resources {
+    public final String parent = "/api"; // API側の親を定義します
+    @GetMapping(parent + "/{root}/{controller}")
+    public Object getIt(@PathVariable String root, @PathVariable String controller) {
+        var re = EventController.execute(root, controller);
+        if (re != null) return re.result();
+        return null;
     }
-    public Class<?> getReturns(){
-        return result.getClass();
-    }
+
 }

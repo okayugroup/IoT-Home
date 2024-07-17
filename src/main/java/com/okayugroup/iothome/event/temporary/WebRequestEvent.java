@@ -17,13 +17,13 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event.temporary;
+package com.okayugroup.iothome.event.temporary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.okayugroup.IotHome.event.EventResult;
-import com.okayugroup.IotHome.event.TemporaryEvent;
+import com.okayugroup.iothome.event.EventResult;
+import com.okayugroup.iothome.event.TemporaryEvent;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;

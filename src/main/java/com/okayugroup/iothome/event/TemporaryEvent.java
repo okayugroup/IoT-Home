@@ -17,7 +17,7 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event;
+package com.okayugroup.iothome.event;
 
 public abstract class TemporaryEvent<T> extends Event<T> {
     protected TemporaryEvent(String parent, String child, String... args) {

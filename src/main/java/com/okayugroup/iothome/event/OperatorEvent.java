@@ -17,11 +17,11 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event;
+package com.okayugroup.iothome.event;
 
-public enum EventType {
-    INPUT,
-    OUTPUT,
-    OPERATOR,
-    TEMPORARY,
+public abstract class OperatorEvent<T> extends Event<T> {
+
+    protected OperatorEvent(String parent, String child, String... args) {
+        super(parent, child, args, EventType.OPERATOR);
+    }
 }

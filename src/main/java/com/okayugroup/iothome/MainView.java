@@ -17,9 +17,9 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
+package com.okayugroup.iothome;
 
-import com.okayugroup.IotHome.event.EventController;
+import com.okayugroup.iothome.event.EventController;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;

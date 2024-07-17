@@ -17,11 +17,18 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome.event;
+package com.okayugroup.iothome.event;
 
-public abstract class InputEvent<T> extends Event<T> {
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
-    protected InputEvent(String parent, String child, String... args) {
-        super(parent, child, args, EventType.INPUT);
+
+public record EventResult<T>(@Nullable Exception exception, T result){
+    @Contract(pure = true)
+    public boolean isError() {
+        return exception != null;
+    }
+    public Class<?> getReturns(){
+        return result.getClass();
     }
 }
