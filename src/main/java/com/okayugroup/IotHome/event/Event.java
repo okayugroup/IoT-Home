@@ -1,50 +1,97 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of Iot-Home.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * Iot-Home is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Iot-Home is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Iot-Home. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2024 OkayuGroup
  */
+
 
 package com.okayugroup.IotHome.event;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Event {
-    protected final int typeIndex;
-    private final EventTemplate type;
-    private final EventTemplate[] templates;
-    protected Event(String NAME, int type, String... args){
-        this.name = NAME;
-        templates = initializeEvents();
-        typeIndex = type;
-        this.type = templates[type];
+import java.util.Arrays;
+import java.util.List;
+
+public abstract class Event<T> {
+    protected Event(String parent, String child, String[] args, EventType type){
+        this.name = parent;
+        this.child = child;
+        this.type = type;
         setArgs(args);
     }
-    protected abstract EventTemplate[] initializeEvents();
-    public EventTemplate getType() {
-        return type;
+    public static String getTypicalName(Class<?> event) {
+        return event.getSimpleName();
     }
-    public abstract Event getCopy(int typeIndex);
-    public Event getCopy() {
-        return getCopy(typeIndex);
+    public static List<String> getTypicalName(Class<?>... events) {
+        return Arrays.stream(events).map(Event::getTypicalName).toList();
     }
-    public final String name;
-    public EventTemplate[] getTemplates() {
-        return templates;
+    protected final String name;
+    protected final String child;
+    protected final EventType type;
+    private SizeChangeListener listener;
+    public String getParentName() {
+        return name;
     }
-    public abstract String[] getArgs();
-    public abstract Event setArgs(String... args);
-
+    public String getChildName() {
+        return child;
+    }
+    @NotNull
+    protected abstract String[] getArgs();
+    protected abstract void setArgs(String... args);
+    public abstract Event<T> getCopy();
+    public TemplatedEvent getTemplate() {
+        return EventController.getTemplate(this);
+    }
     @Override
     public String toString() {
-        return type.name();
+        return name + " - " + child;
     }
-    public abstract EventResult execute(@Nullable EventResult previousResult);
+
+    /**
+     * @param previousResult The result of the previous event
+     * @return The result of this event's execution
+     */
+    public abstract EventResult<T> execute(@Nullable EventResult<?> previousResult);
+    public EventResult<?> executeLinkedEvents(@NotNull List<@NotNull LinkedEvent> events, EventResult<?> result) {
+        if (events.isEmpty()) return result;  // イベントがリンクされていない場合、自身の結果を折り返す
+        EventResult<?> totalResult = null;
+        for (LinkedEvent linkedEvent : events) {
+            totalResult = linkedEvent.execute(result);
+        }
+        return totalResult;
+    }
+    public EventType getTypeId() {
+        return type;
+    }
+
+    public String getTypicalName() {
+        return getTypicalName(getClass());
+    }
+
+    public void setSizeChangedListener(SizeChangeListener listener) {
+        this.listener = listener;
+    }
+    public abstract String getReturns();
+
+    private void onSizeChanged(int a) {
+        listener.updated(a);
+    }
+
+    public interface SizeChangeListener {
+        void updated(int maxConnections);
+    }
 }

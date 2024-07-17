@@ -17,22 +17,11 @@
  * Copyright (C) 2024 OkayuGroup
  */
 
-package com.okayugroup.IotHome;
+package com.okayugroup.IotHome.event;
 
-import com.okayugroup.IotHome.event.EventController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+public abstract class OperatorEvent<T> extends Event<T> {
 
-
-@RestController
-public class Resources {
-    public final String parent = "/api"; // API側の親を定義します
-    @GetMapping(parent + "/{root}/{controller}")
-    public Object getIt(@PathVariable String root, @PathVariable String controller) {
-        var re = EventController.execute(root, controller);
-        if (re != null) return re.result();
-        return null;
+    protected OperatorEvent(String parent, String child, String... args) {
+        super(parent, child, args, EventType.OPERATOR);
     }
-
 }

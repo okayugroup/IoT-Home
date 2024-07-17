@@ -1,36 +1,44 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of Iot-Home.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * Iot-Home is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Iot-Home is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Iot-Home. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2024 OkayuGroup
  */
 
 package com.okayugroup.IotHome;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
         Thread t = new Thread(() -> IoTHomeApplication.main(args));
         t.start();
-        try {
-            SwingUtilities.invokeLater(() -> MainView.main(args));
-        } catch (HeadlessException e) {
-            System.err.println("""
-                    ハードウェアがGUIに対応していないようです。
-                    このアプリはGUIが無くても動きますが、設定の方法が難しくなります。
-                    
-                    このエラーが予期したものではない場合はGitHubで報告してください。
-                    GUIのない環境で実行している場合は、アプリ実行時に生成されたevents.jsonを編集することで設定ができます。
-                    """);
+        if (!Arrays.asList(args).contains("--nogui")) {
+            try {
+                SwingUtilities.invokeLater(() -> MainView.main(args));
+            } catch (HeadlessException e) {
+                System.err.println("""
+                        ハードウェアがGUIに対応していないようです。
+                        このアプリはGUIが無くても動きますが、設定の方法が難しくなります。
+                        
+                        このエラーが予期したものではない場合はGitHubで報告してください。
+                        GUIのない環境で実行している場合は、アプリ実行時に生成されたevents.jsonを編集することで設定ができます。
+                        """);
+            }
         }
     }
 }
