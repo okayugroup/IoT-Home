@@ -1,4 +1,4 @@
-# Iot-Home
+# IoT-Home
 
 IoT-Home(仮名)はRaspberry PiなどのIoT機器向けに開発されたアプリです。
 
