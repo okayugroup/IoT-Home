@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.okayugroup</groupId>
-	<artifactId>IotHome</artifactId>
+	<artifactId>iothome</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>IoT-Home</name>
 	<description>Demo project for Spring Boot</description>

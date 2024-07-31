@@ -33,7 +33,7 @@ public class MainView {
     private JPanel formPanel;
     private JTextArea logArea;
     private JCheckBox useHtmlSettings;
-    public static Font Font = loadFont();
+    public static final Font Font = loadFont();
     private JPanel eventsPane;
     private JButton saveNodesButton;
     private JButton resetNodesButton;
