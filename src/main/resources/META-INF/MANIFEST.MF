@@ -1,19 +1,20 @@
 Manifest-Version: 1.0
 Main-Class: com.okayugroup.iothome.Main
-Class-Path: jul-to-slf4j-2.0.13.jar log4j-to-slf4j-2.21.1.jar tomcat-emb
- ed-el-10.1.20.jar log4j-api-2.21.1.jar spring-aop-6.1.6.jar jackson-dat
- abind-2.15.4.jar spring-beans-6.1.6.jar jackson-module-parameter-names-
- 2.15.4.jar jackson-annotations-2.15.4.jar spring-core-6.1.6.jar log4j-c
- ore-3.0.0-beta2.jar spring-web-6.1.6.jar tomcat-embed-core-10.1.20.jar 
- spring-boot-starter-tomcat-3.2.5.jar tomcat-embed-websocket-10.1.20.jar
-  slf4j-api-2.0.13.jar jackson-datatype-jdk8-2.15.4.jar logback-core-1.4
- .14.jar spring-webmvc-6.1.6.jar jackson-core-2.15.4.jar spring-expressi
- on-6.1.6.jar spring-boot-starter-json-3.2.5.jar micrometer-commons-1.12
- .5.jar spring-boot-starter-logging-3.2.5.jar logback-classic-1.4.14.jar
-  spring-boot-starter-3.2.5.jar spring-jcl-6.1.6.jar spring-boot-3.2.5.j
- ar spring-context-6.1.6.jar jakarta.annotation-api-2.1.1.jar annotation
- s-24.1.0.jar spring-boot-starter-web-3.2.5.jar snakeyaml-2.2.jar log4j-
- plugins-3.0.0-beta2.jar jlayer-1.0.1.jar spring-boot-autoconfigure-3.2.
- 5.jar micrometer-observation-1.12.5.jar jackson-datatype-jsr310-2.15.4.
- jar
+Class-Path: jackson-core-2.15.4.jar logback-classic-1.4.14.jar log4j-to-
+ slf4j-2.21.1.jar spring-boot-starter-tomcat-3.2.5.jar slf4j-api-2.0.13.
+ jar spring-webmvc-6.1.6.jar snakeyaml-2.2.jar spring-boot-starter-json-
+ 3.2.5.jar jackson-annotations-2.15.4.jar tomcat-embed-core-10.1.20.jar 
+ log4j-api-2.21.1.jar spring-context-6.1.6.jar spring-expression-6.1.6.j
+ ar spring-boot-autoconfigure-3.2.5.jar tomcat-embed-el-10.1.20.jar http
+ core-4.4.16.jar commons-logging-1.2.jar spring-beans-6.1.6.jar jackson-
+ module-parameter-names-2.15.4.jar jakarta.annotation-api-2.1.1.jar jack
+ son-databind-2.15.4.jar httpclient-4.5.13.jar jul-to-slf4j-2.0.13.jar j
+ ackson-datatype-jdk8-2.15.4.jar spring-boot-starter-logging-3.2.5.jar s
+ pring-boot-starter-web-3.2.5.jar tomcat-embed-websocket-10.1.20.jar mic
+ rometer-observation-1.12.5.jar logback-core-1.4.14.jar spring-aop-6.1.6
+ .jar spring-boot-starter-3.2.5.jar log4j-plugins-3.0.0-beta2.jar jackso
+ n-datatype-jsr310-2.15.4.jar spring-boot-3.2.5.jar micrometer-commons-1
+ .12.5.jar spring-web-6.1.6.jar spring-core-6.1.6.jar log4j-core-3.0.0-b
+ eta2.jar annotations-24.1.0.jar jlayer-1.0.1.jar commons-codec-1.16.1.j
+ ar spring-jcl-6.1.6.jar
 
