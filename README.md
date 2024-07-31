@@ -2,7 +2,7 @@
 
 IoT-HomeはRaspberry PiなどのIoT機器向けに開発されたアプリです。
 
-詳しくは[おかゆグループサービス - Iot-Home](https://services.okayugroup.com/iothome)をご覧ください。
+詳しくは[おかゆグループサービス - Iot-Home](https://services.okayugroup.com/iot-home)をご覧ください。
 
 ## 機能
 
